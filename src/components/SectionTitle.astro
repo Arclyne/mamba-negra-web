@@ -1,0 +1,10 @@
+---
+// Título de sección con la animación de "corte de navaja".
+interface Props { eyebrow: string; id?: string }
+const { eyebrow, id } = Astro.props;
+---
+
+<div>
+  <p class="eyebrow">{eyebrow}</p>
+  <h2 class="display sec-title" id={id}><span class="cut-t"><slot /></span></h2>
+</div>

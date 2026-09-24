@@ -1,0 +1,8 @@
+---
+// Ilustración tenue de una herramienta de barbería al fondo de una sección.
+interface Props { tool: 'razor' | 'clipper' | 'scissors'; class?: string }
+const { tool, class: cls } = Astro.props;
+const viewBox = { razor: '0 0 440 150', clipper: '0 0 170 430', scissors: '0 0 240 260' }[tool];
+---
+
+<svg class:list={['bg-tool', cls]} viewBox={viewBox} aria-hidden="true" focusable="false"><use href={`#g-${tool}`} /></svg>

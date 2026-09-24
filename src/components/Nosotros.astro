@@ -1,0 +1,56 @@
+---
+import BgTool from './BgTool.astro';
+import SectionTitle from './SectionTitle.astro';
+
+const datos = [
+  { titulo: 'Lun a Sáb', texto: 'Horario partido, 9 horas al día' },
+  { titulo: 'Sin prisas', texto: 'Citas de 1 o 2 horas según el servicio' },
+  { titulo: 'En línea', texto: 'Reserva y cancela a cualquier hora' },
+  { titulo: 'Centro', texto: 'A pasos del centro de Coatepec' },
+];
+---
+
+<section class="section" id="nosotros" aria-labelledby="t-nosotros">
+  <BgTool tool="scissors" class="bt-nos" />
+  <div class="wrap">
+    <div class="about-grid">
+      <SectionTitle eyebrow="Nuestra historia" id="t-nosotros">Más que<br />un corte</SectionTitle>
+      <div class="about-copy">
+        <p>La Mamba Negra nació con una sola visión: elevar la experiencia del barbershop a otro nivel. Un espacio donde la cultura, el estilo y la precisión se encuentran.</p>
+        <p>Cada visita es una experiencia. Navaja afilada, mano segura, resultado impecable.</p>
+      </div>
+    </div>
+    <div class="stats">
+      {datos.map((d) => <div><strong>{d.titulo}</strong><span>{d.texto}</span></div>)}
+    </div>
+    <blockquote>“El estilo no es lo que ves. <span>Es lo que sientes cuando te ves.”</span></blockquote>
+  </div>
+</section>
+
+<style>
+  .about-grid { display: grid; grid-template-columns: 5fr 1fr 6fr; gap: 24px; }
+  .about-copy { grid-column: 3; display: flex; flex-direction: column; gap: 20px; padding-top: 40px; }
+  .about-copy p { margin: 0; font-size: clamp(17px, 1.5vw, 21px); line-height: 1.6; color: #e4e4e8; }
+  .about-copy p + p { font-size: 17px; color: var(--color-body); }
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-block: 1px solid var(--color-line); margin-top: 64px; }
+  .stats div { padding: 32px 28px; border-left: 1px solid var(--color-line); display: flex; flex-direction: column; gap: 6px; }
+  .stats div:first-child { border-left: 0; padding-left: 0; }
+  .stats strong { font-family: var(--font-display); font-weight: 400; font-size: 44px; line-height: 1; color: var(--color-fg); }
+  .stats span { font-size: 15px; color: var(--color-body); }
+  blockquote {
+    margin: 64px auto 0; max-width: 22ch; text-align: center; font-family: var(--font-display);
+    font-size: clamp(32px, 4vw, 52px); line-height: 1.08; text-wrap: balance;
+  }
+  blockquote span { color: var(--color-red-text); }
+  section :global(.bt-nos) { width: clamp(200px, 17vw, 260px); right: -1%; top: 3%; transform: rotate(28deg); }
+
+  @media (max-width: 900px) {
+    .about-grid { grid-template-columns: 1fr; }
+    .about-copy { grid-column: auto; padding-top: 0; }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .stats div { padding: 22px 16px; border-left: 0; border-bottom: 1px solid var(--color-line); }
+    .stats div:nth-child(odd) { padding-left: 0; border-right: 1px solid var(--color-line); }
+    .stats div:nth-last-child(-n+2) { border-bottom: 0; }
+    section :global(.bt-nos) { width: 44vw; right: -10%; top: 2%; }
+  }
+</style>

@@ -1,0 +1,26 @@
+---
+const eventos = ['Batalla de Barberos XL 2024', 'Crazy Barber Cup', 'EMA Master', 'Marco Lavín'];
+---
+
+<div class="strip" aria-label="Competencias y reconocimientos">
+  <div class="wrap">
+    <b>Presentes en</b>
+    <ul>{eventos.map((e) => <li>{e}</li>)}</ul>
+  </div>
+</div>
+
+<style>
+  .strip { border-block: 1px solid var(--color-line); background: var(--color-bg-2); }
+  .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 40px; padding-block: 24px; }
+  b { font-size: 13px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--color-muted); }
+  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px 40px; flex: 1; justify-content: space-between; }
+  li {
+    font-family: var(--font-display); font-size: clamp(22px, 2.2vw, 30px); letter-spacing: .05em; color: #dadadf;
+    display: flex; align-items: center; gap: 12px;
+  }
+  li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--color-red); }
+  @media (max-width: 640px) {
+    .wrap { flex-direction: column; align-items: flex-start; }
+    ul { flex-direction: column; gap: 6px; }
+  }
+</style>

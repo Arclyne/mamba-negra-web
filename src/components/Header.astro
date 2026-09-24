@@ -1,0 +1,139 @@
+---
+import { Image } from 'astro:assets';
+import logo from '../assets/logo-192.webp';
+import { negocio } from '../config/negocio';
+import { resenas } from '../lib/resenas';
+
+interface Props { inicio?: string }
+// En páginas secundarias los enlaces apuntan a la portada ("/#servicios").
+const { inicio = '' } = Astro.props;
+
+// La sección de reseñas solo existe cuando hay reseñas reales.
+const hayResenas = resenas.length > 0;
+
+const links = [
+  { href: '#nosotros', corto: 'Nosotros', largo: 'Nosotros' },
+  { href: '#servicios', corto: 'Servicios', largo: 'Servicios y precios' },
+  { href: '#trabajo', corto: 'Trabajo', largo: 'Nuestro trabajo' },
+  ...(hayResenas ? [{ href: '#resenas', corto: 'Reseñas', largo: 'Reseñas' }] : []),
+  { href: '#ubicacion', corto: 'Ubicación', largo: 'Ubicación' },
+];
+---
+
+<header class="hdr" id="hdr">
+  <div class="wrap">
+    <a class="brand" href={`${inicio || '/'}#inicio`} aria-label={`${negocio.nombre}, inicio`}>
+      <Image src={logo} alt="" width={44} height={44} densities={[1, 2]} loading="eager" />
+      <span>{negocio.nombre}</span>
+    </a>
+    <nav class="nav" aria-label="Principal">
+      {links.map((l) => <a href={inicio + l.href}>{l.corto}</a>)}
+      <a class="btn btn-red" href={`${inicio}#reservar`}>Reservar cita</a>
+    </nav>
+    <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mnav" aria-label="Abrir menú">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <g class="burger"><line x1="4" y1="7" x2="20" y2="7" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="17" x2="20" y2="17" /></g>
+        <g class="xmark"><line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" /></g>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<nav class="mnav" id="mnav" aria-label="Menú móvil" hidden>
+  {links.map((l) => <a href={inicio + l.href}>{l.largo}</a>)}
+  <a class="btn btn-red" href={`${inicio}#reservar`}>Reservar cita</a>
+  <small>{negocio.horario.resumen}<br />{negocio.direccion.calle}, {negocio.direccion.colonia}, {negocio.direccion.ciudad}</small>
+</nav>
+
+<script>
+  const hdr = document.getElementById('hdr')!;
+  const btn = document.getElementById('menuBtn')!;
+  const menu = document.getElementById('mnav')!;
+
+  function setMenu(open: boolean) {
+    menu.hidden = !open;
+    btn.setAttribute('aria-expanded', String(open));
+    btn.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+  btn.addEventListener('click', () => setMenu(btn.getAttribute('aria-expanded') !== 'true'));
+  menu.addEventListener('click', (e) => { if ((e.target as Element).closest('a')) setMenu(false); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !menu.hidden) { setMenu(false); btn.focus(); }
+  });
+  window.addEventListener('resize', () => { if (window.innerWidth > 900 && !menu.hidden) setMenu(false); });
+
+  // El encabezado se compacta al bajar.
+  let ticking = false;
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => { hdr.classList.toggle('compact', window.scrollY > 40); ticking = false; });
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+
+<style>
+  .hdr {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+    background: rgba(0, 0, 0, .92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--color-line);
+    transition: background .25s, box-shadow .25s;
+  }
+  .hdr .wrap { height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 16px; transition: height .25s var(--ease); }
+  .hdr.compact { background: rgba(0, 0, 0, .97); box-shadow: 0 8px 30px rgba(0, 0, 0, .6); }
+  .hdr.compact .wrap { height: 60px; }
+  .hdr.compact .brand :global(img) { width: 36px; height: 36px; }
+
+  .brand { display: flex; align-items: center; gap: 12px; color: var(--color-fg); }
+  .brand:hover { color: var(--color-fg); }
+  .brand :global(img) {
+    width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--color-line-2); object-fit: cover;
+    transition: width .25s var(--ease), height .25s var(--ease);
+  }
+  .brand span { font-family: var(--font-display); font-size: 26px; letter-spacing: .08em; }
+
+  .nav { display: flex; align-items: center; gap: 36px; font-size: 16px; font-weight: 500; }
+  .nav a:not(.btn) { color: #dadadf; }
+  .nav a:not(.btn):hover { color: #fff; }
+  .nav .btn { min-height: 46px; padding: 0 22px; font-size: 14px; }
+
+  .menu-btn {
+    display: none; width: 48px; height: 48px; border: 1px solid var(--color-line-2); border-radius: 6px;
+    background: transparent; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .menu-btn .xmark, .menu-btn[aria-expanded="true"] .burger { display: none; }
+  .menu-btn[aria-expanded="true"] .xmark { display: inline; }
+
+  .mnav {
+    position: fixed; inset: 72px 0 0 0; z-index: 19; background: var(--color-bg);
+    padding: 24px var(--gutter); display: flex; flex-direction: column; overflow-y: auto;
+  }
+  .mnav a:not(.btn) {
+    font-family: var(--font-display); font-size: 44px; color: var(--color-fg);
+    padding: 10px 0; border-bottom: 1px solid var(--color-line);
+  }
+  .mnav .btn { margin-top: 28px; }
+  .mnav small {
+    margin-top: auto; padding-top: 24px; color: var(--color-body); font-size: 15px; line-height: 1.6;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+  .mnav:not([hidden]) a { animation: linkIn .45s var(--ease) both; }
+  .mnav:not([hidden]) a:nth-child(2) { animation-delay: .05s; }
+  .mnav:not([hidden]) a:nth-child(3) { animation-delay: .1s; }
+  .mnav:not([hidden]) a:nth-child(4) { animation-delay: .15s; }
+  .mnav:not([hidden]) a:nth-child(5) { animation-delay: .2s; }
+  @keyframes linkIn { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
+
+  @media (max-width: 900px) {
+    .nav { display: none; }
+    .menu-btn { display: inline-flex; }
+  }
+  @media (max-width: 640px) {
+    .hdr .wrap { height: 64px; }
+    .mnav { inset: 64px 0 0 0; }
+    .brand span { font-size: 22px; }
+    .brand :global(img) { width: 38px; height: 38px; }
+    .mnav a:not(.btn) { font-size: 36px; }
+  }
+</style>

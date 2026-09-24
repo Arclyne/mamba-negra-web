@@ -1,0 +1,8 @@
+[
+  { "id": "marco-lavin", "tipo": "Reconocimiento", "titulo": "Marco Lavín", "tamano": "grande" },
+  { "id": "batalla-barberos-xl-2024", "tipo": "Competencia", "titulo": "Batalla de Barberos XL 2024" },
+  { "id": "ema-master", "tipo": "Reconocimiento", "titulo": "EMA Master" },
+  { "id": "crazy-barber-cup", "tipo": "Competencia", "titulo": "Crazy Barber Cup" },
+  { "id": "crazy-barber-cup-red-carpet", "tipo": "Competencia", "titulo": "Crazy Barber Cup · Red Carpet" },
+  { "id": "batalla-barberos-xl", "tipo": "Competencia", "titulo": "Batalla de Barberos XL", "tamano": "ancho" }
+]

@@ -1,0 +1,93 @@
+[
+  {
+    "id": "corte-de-cabello",
+    "nombre": "Corte de cabello",
+    "descripcion": "Fade, clásico o texturizado. Diseñado a tu medida con técnica y precisión.",
+    "precio": 180,
+    "duracion": 60,
+    "categoria": "servicio"
+  },
+  {
+    "id": "delineado-de-barba",
+    "nombre": "Delineado de barba",
+    "descripcion": "Perfilado y definición con navaja. La barba perfecta para tu rostro.",
+    "precio": 170,
+    "duracion": 60,
+    "categoria": "servicio"
+  },
+  {
+    "id": "afeitado-de-barba",
+    "nombre": "Afeitado de barba",
+    "descripcion": "Afeitado clásico con navaja. Suave, preciso e impecable.",
+    "precio": 180,
+    "duracion": 60,
+    "categoria": "servicio"
+  },
+  {
+    "id": "delineado-de-ceja",
+    "nombre": "Delineado de ceja",
+    "descripcion": "Arreglo y delineado preciso. Los detalles que marcan la diferencia.",
+    "precio": 60,
+    "duracion": 60,
+    "categoria": "servicio"
+  },
+  {
+    "id": "peinado",
+    "nombre": "Peinado",
+    "descripcion": "Estilizado y peinado profesional. El toque final que necesitas.",
+    "precio": 60,
+    "duracion": 60,
+    "categoria": "servicio"
+  },
+  {
+    "id": "limpieza-facial",
+    "nombre": "Limpieza facial",
+    "descripcion": "Vapor de ozono, toallas frías y calientes, mascarilla de carbón y ácido hialurónico.",
+    "precio": 150,
+    "duracion": 60,
+    "categoria": "servicio"
+  },
+  {
+    "id": "permacologia",
+    "nombre": "Permacología",
+    "descripcion": "Permanente y semiondulado para cabello con un largo mínimo de 4 dedos.",
+    "precio": 600,
+    "duracion": 120,
+    "categoria": "servicio"
+  },
+  {
+    "id": "corte-y-barba",
+    "nombre": "Corte + barba",
+    "descripcion": "Corte de cabello con delineado o afeitado de barba.",
+    "precio": 330,
+    "duracion": 120,
+    "categoria": "combo",
+    "ahorro": "$20–30"
+  },
+  {
+    "id": "corte-y-ceja",
+    "nombre": "Corte + ceja",
+    "descripcion": "Corte de cabello con delineado de ceja. Limpio y detallado.",
+    "precio": 230,
+    "duracion": 60,
+    "categoria": "combo",
+    "ahorro": "$10"
+  },
+  {
+    "id": "corte-y-facial",
+    "nombre": "Corte + facial",
+    "descripcion": "Corte de cabello con limpieza facial completa. Saldrás renovado.",
+    "precio": 310,
+    "duracion": 60,
+    "categoria": "combo",
+    "ahorro": "$20"
+  },
+  {
+    "id": "servicio-completo",
+    "nombre": "Servicio completo",
+    "descripcion": "La experiencia completa de La Mamba Negra. Todo incluido.",
+    "precio": 510,
+    "duracion": 120,
+    "categoria": "combo"
+  }
+]

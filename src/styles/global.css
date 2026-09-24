@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+/* Identidad visual: negro, rojo y cromo. Bebas Neue para títulos, DM Sans para texto.
+   Estos tokens generan utilidades de Tailwind (bg-surface, text-red-text, font-display…)
+   y variables CSS (--color-red…) que usan los estilos de cada componente. */
+@theme static {
+  --color-bg: #000000;
+  --color-bg-2: #0c0c0e;
+  --color-surface: #141416;
+  --color-line: #242428;
+  --color-line-2: #38383e;
+  --color-muted: #8e8e96;
+  --color-soft: #a8a8b0;
+  --color-body: #c4c4ca;
+  --color-fg: #f4f4f6;
+  --color-red: #d7262e;
+  --color-red-hot: #e0302a;
+  --color-red-text: #f0524a;
+  --color-red-dim: #2a0d0f;
+  --color-wa: #25d366;
+
+  --font-display: "Bebas Neue", Impact, "Arial Narrow", sans-serif;
+  --font-sans: "DM Sans Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --ease-out-soft: cubic-bezier(0.2, 0.75, 0.2, 1);
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:root {
+  color-scheme: dark;
+  --gutter: clamp(16px, 5vw, 96px);
+  --maxw: 1280px;
+  --ease: var(--ease-out-soft);
+}
+
+@layer base {
+  [hidden]:not([hidden="until-found" i]) { display: none !important; }
+  html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+  body {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--color-red-text); text-decoration: none; }
+  a:hover { color: #ff7a72; }
+  :focus-visible { outline: 2px solid var(--color-red-text); outline-offset: 3px; border-radius: 2px; }
+  @media (max-width: 640px) { body { font-size: 16px; } }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+}
+
+/* Piezas compartidas entre secciones. Los estilos propios de cada sección
+   están en su componente (src/components/*.astro). */
+@layer components {
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding-inline: var(--gutter); }
+
+  .display {
+    font-family: var(--font-display); font-weight: 400; letter-spacing: .01em; line-height: .9;
+    margin: 0; text-wrap: balance;
+  }
+  .eyebrow {
+    display: flex; align-items: center; gap: 12px; margin: 0;
+    font-size: 13px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--color-red-text);
+  }
+  .eyebrow::before { content: ""; width: 28px; height: 2px; background: var(--color-red); flex-shrink: 0; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    min-height: 52px; padding: 0 28px; border-radius: 4px; border: 1px solid transparent;
+    font-weight: 700; font-size: 15px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s, transform .2s var(--ease), box-shadow .2s;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-red { background: var(--color-red); color: #fff; }
+  .btn-red:hover { background: #b81e25; color: #fff; transform: translateY(-2px); box-shadow: 0 10px 26px rgba(215, 38, 46, .35); }
+  .btn-ghost { border-color: var(--color-line-2); color: var(--color-fg); background: transparent; }
+  .btn-ghost:hover { border-color: var(--color-soft); color: var(--color-fg); }
+  .btn.popit { animation: pop .45s var(--ease-pop); }
+  .ico { width: 18px; height: 18px; flex-shrink: 0; stroke: currentColor; }
+
+  /* Secciones */
+  .section { position: relative; overflow: hidden; padding-block: clamp(64px, 10vw, 128px); }
+  .section > .wrap { position: relative; z-index: 1; }
+  .section.alt { background: var(--color-bg-2); border-block: 1px solid var(--color-line); }
+  .sec-head {
+    display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+    gap: 24px 48px; margin-bottom: clamp(28px, 4vw, 48px);
+  }
+  .sec-title { font-size: clamp(56px, 7vw, 96px); margin-top: 18px; }
+
+  /* Ilustraciones de herramientas al fondo */
+  .bg-tool {
+    position: absolute; z-index: 0; pointer-events: none; height: auto;
+    fill: none; stroke: #fff; stroke-width: 1.4; opacity: .07;
+  }
+  .bg-tool.red { stroke: var(--color-red); opacity: .12; }
+  @media (max-width: 900px) { .bg-tool { opacity: .06; } }
+}
+
+/* ---------- Movimiento compartido ---------- */
+@keyframes rise { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+@keyframes lineIn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes pop { 0% { transform: scale(.86); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+@keyframes cutIn { from { clip-path: inset(-10% 100% -10% 0); } to { clip-path: inset(-10% 0 -10% 0); } }
+@keyframes blade {
+  0% { opacity: 0; transform: translateX(-100%) rotate(-4deg); }
+  12% { opacity: 1; } 80% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(360%) rotate(-4deg); }
+}
+
+/* Títulos de sección: una navaja cromada los "corta" al entrar en pantalla.
+   Solo se activa cuando el script de movimiento marca <html class="anim">. */
+h2.sec-title { display: inline-block; position: relative; }
+.cut-t { display: inline-block; }
+html.anim h2[data-cut] .cut-t { clip-path: inset(-10% 100% -10% 0); }
+html.anim h2[data-cut].cut .cut-t { animation: cutIn .75s cubic-bezier(.75, 0, .2, 1) .3s both; }
+h2[data-cut]::after {
+  content: ""; position: absolute; left: 0; top: 50%; width: 22%; height: 3px; margin-top: -1px;
+  border-radius: 2px; opacity: 0; pointer-events: none;
+  background: linear-gradient(90deg, transparent, #8c8c95 30%, #fff 85%, #ffd9d6);
+  box-shadow: 0 0 10px rgba(255, 255, 255, .7), 0 0 26px rgba(215, 38, 46, .7);
+  transform: translateX(-100%) rotate(-4deg);
+}
+h2[data-cut].cut::after { animation: blade .75s cubic-bezier(.75, 0, .2, 1) .3s both; }
+
+/* Aparición al hacer scroll */
+html.anim [data-reveal] {
+  opacity: 0; transform: translateY(34px);
+  transition: opacity .8s var(--ease), transform .8s var(--ease); transition-delay: var(--d, 0s);
+}
+html.anim [data-reveal].in { opacity: 1; transform: none; }
+html.anim [data-reveal] .eyebrow::before { transform: scaleX(0); transform-origin: left; transition: transform .7s var(--ease) .25s; }
+html.anim [data-reveal].in .eyebrow::before { transform: scaleX(1); }
+
+@media (prefers-reduced-motion: reduce) {
+  html.anim h2[data-cut] .cut-t { clip-path: none; }
+  h2[data-cut]::after { display: none; }
+  html.anim [data-reveal] { opacity: 1; transform: none; }
+}
