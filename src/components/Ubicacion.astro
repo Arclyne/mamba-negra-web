@@ -1,0 +1,101 @@
+---
+import BgTool from './BgTool.astro';
+import SectionTitle from './SectionTitle.astro';
+import { negocio, waLink } from '../config/negocio';
+
+const d = negocio.direccion;
+const [manana, tarde] = negocio.horario.bloques;
+---
+
+<section class="section" id="ubicacion" aria-labelledby="t-ubicacion">
+  <BgTool tool="clipper" class="bt-ubic red" />
+  <div class="wrap contact">
+    <div class="contact-info">
+      <SectionTitle eyebrow="Encuéntranos" id="t-ubicacion">Visítanos</SectionTitle>
+      <div>
+        <span class="lbl">Dirección</span>
+        <address>{d.calle}, {d.colonia}<br />{d.cp} {d.ciudad}, {d.estado}</address>
+      </div>
+      <div>
+        <span class="lbl">Horario</span>
+        <div class="hours">
+          <div><span>Lunes a sábado</span><b>{manana.abre}–{manana.cierra} · {tarde.abre}–{tarde.cierra}</b></div>
+          <div><span>Domingo</span><b class="closed">Cerrado</b></div>
+        </div>
+      </div>
+      <div class="contact-btns">
+        <a class="btn btn-red" href={waLink()} target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>WhatsApp</a>
+        <a class="btn btn-ghost" href={negocio.instagram.url} target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#i-ig" /></svg>Instagram</a>
+      </div>
+      <p class="phone">WhatsApp: {negocio.whatsapp.visible} · Instagram: @{negocio.instagram.usuario}</p>
+    </div>
+
+    <!-- RF-02: el mapa de Google solo se carga si la persona lo pide (rendimiento y privacidad). -->
+    <div class="map" id="mapa" data-src={negocio.mapsEmbedUrl}>
+      <div class="map-pin">
+        <div class="pin"><svg width="26" height="26" viewBox="0 0 24 24" stroke="#fff" aria-hidden="true"><use href="#i-pin" /></svg></div>
+        <strong>{negocio.nombre}</strong>
+        <span>{d.calle.replace('C. ', '')}, {d.colonia} de {d.ciudad}</span>
+        <button type="button" class="btn btn-ghost" id="mapBtn">Mostrar mapa</button>
+      </div>
+      <a href={negocio.mapsUrl} target="_blank" rel="noopener"><span>Cómo llegar con Google Maps</span><span aria-hidden="true">→</span></a>
+    </div>
+  </div>
+</section>
+
+<script>
+  const mapa = document.getElementById('mapa')!;
+  document.getElementById('mapBtn')!.addEventListener('click', () => {
+    const iframe = document.createElement('iframe');
+    iframe.src = mapa.dataset.src!;
+    iframe.title = 'Mapa de ubicación de La Mamba Negra en Coatepec';
+    iframe.loading = 'lazy';
+    iframe.referrerPolicy = 'no-referrer-when-downgrade';
+    iframe.className = 'map-frame';
+    mapa.querySelector('.map-pin')!.replaceWith(iframe);
+    iframe.focus();
+  });
+</script>
+
+<style>
+  .contact { display: grid; grid-template-columns: 5fr 1fr 6fr; gap: 24px; }
+  .contact-info { display: flex; flex-direction: column; gap: 32px; }
+  .lbl { font-size: 13px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--color-muted); display: block; margin-bottom: 6px; }
+  address { font-style: normal; font-size: 20px; line-height: 1.5; }
+  .hours { border-top: 1px solid var(--color-line); }
+  .hours div { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; padding: 16px 0; border-bottom: 1px solid var(--color-line); font-size: 18px; }
+  .hours b { color: var(--color-fg); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .hours .closed { color: var(--color-muted); font-weight: 400; }
+  .contact-btns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .contact-btns .btn { letter-spacing: .04em; text-transform: none; font-size: 16px; }
+  .phone { font-size: 14px; color: var(--color-soft); margin: -18px 0 0; }
+
+  .map {
+    grid-column: 3; border-radius: 10px; border: 1px solid var(--color-line-2);
+    background:
+      linear-gradient(var(--color-line) 1px, transparent 1px) 0 0 / 48px 48px,
+      linear-gradient(90deg, var(--color-line) 1px, transparent 1px) 0 0 / 48px 48px,
+      var(--color-bg-2);
+    display: flex; flex-direction: column; min-height: 460px; overflow: hidden;
+  }
+  .map-pin { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 24px; }
+  .pin {
+    width: 56px; height: 56px; border-radius: 50%; background: var(--color-red);
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 10px rgba(215, 38, 46, .18);
+  }
+  .map-pin strong { font-family: var(--font-display); font-weight: 400; font-size: 28px; letter-spacing: .04em; }
+  .map-pin span { color: var(--color-body); font-size: 15px; }
+  .map-pin .btn { margin-top: 8px; min-height: 44px; font-size: 14px; background: rgba(0, 0, 0, .6); }
+  .map :global(.map-frame) { flex: 1; width: 100%; border: 0; filter: grayscale(.35) invert(.9) hue-rotate(180deg); }
+  .map > a {
+    display: flex; justify-content: space-between; align-items: center; padding: 20px 24px;
+    border-top: 1px solid var(--color-line-2); background: var(--color-bg); font-weight: 600;
+  }
+  section :global(.bt-ubic) { width: clamp(170px, 14vw, 220px); left: -3%; bottom: -14%; transform: rotate(-32deg); }
+
+  @media (max-width: 900px) {
+    .contact { grid-template-columns: 1fr; }
+    .map { grid-column: auto; min-height: 340px; }
+    section :global(.bt-ubic) { width: 40vw; left: auto; right: -8%; bottom: 2%; }
+  }
+</style>

@@ -1,0 +1,16 @@
+# build
+dist/
+.astro/
+.netlify/
+
+# dependencias
+node_modules/
+
+# entorno: nunca se versionan (ADR-05)
+.env
+.env.*
+!.env.example
+
+# sistema
+.DS_Store
+npm-debug.log*

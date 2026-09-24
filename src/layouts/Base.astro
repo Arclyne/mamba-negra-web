@@ -1,0 +1,118 @@
+---
+import { getServicios } from '../lib/servicios';
+import '@fontsource/bebas-neue/latin.css';
+import '@fontsource-variable/dm-sans/wght.css';
+import '../styles/global.css';
+import bebasWoff2 from '@fontsource/bebas-neue/files/bebas-neue-latin-400-normal.woff2?url';
+import { getImage } from 'astro:assets';
+import Icons from '../components/Icons.astro';
+import logo from '../assets/logo.webp';
+import { negocio } from '../config/negocio';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Solo la página principal publica los datos estructurados del negocio. */
+  schema?: boolean;
+  noindex?: boolean;
+}
+
+const {
+  title = `${negocio.nombre} · Barbería en Coatepec, Veracruz`,
+  description = negocio.descripcion,
+  schema = false,
+  noindex = false,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = await getImage({ src: logo, width: 600, format: 'jpg', quality: 85 });
+const ogImageUrl = new URL(ogImage.src, Astro.site);
+
+let jsonLd: string | undefined;
+if (schema) {
+  const servicios = await getServicios();
+  const precios = servicios.map((s) => s.data.precio);
+  const d = negocio.direccion;
+  const diasSchema = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  jsonLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'HairSalon',
+    '@id': `${Astro.site}#negocio`,
+    name: negocio.nombreLegal,
+    description: negocio.descripcion,
+    url: Astro.site?.toString(),
+    image: ogImageUrl.toString(),
+    logo: ogImageUrl.toString(),
+    telephone: `+${negocio.whatsapp.numero}`,
+    priceRange: `$${Math.min(...precios)}–$${Math.max(...precios)} MXN`,
+    currenciesAccepted: 'MXN',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: `${d.calle}, ${d.colonia}`,
+      addressLocality: d.ciudad,
+      addressRegion: d.estado,
+      postalCode: d.cp,
+      addressCountry: d.pais,
+    },
+    hasMap: negocio.mapsUrl,
+    openingHoursSpecification: negocio.horario.bloques.map((b) => ({
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: negocio.horario.dias.map((n) => diasSchema[n]),
+      opens: b.abre,
+      closes: b.cierra,
+    })),
+    sameAs: [negocio.instagram.url],
+    makesOffer: servicios.map((s) => ({
+      '@type': 'Offer',
+      price: s.data.precio,
+      priceCurrency: 'MXN',
+      itemOffered: { '@type': 'Service', name: s.data.nombre, description: s.data.descripcion },
+    })),
+  }).replace(/</g, '\\u003c');
+}
+---
+
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="theme-color" content="#000000" />
+
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="preload" href={bebasWoff2} as="font" type="font/woff2" crossorigin />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_MX" />
+    <meta property="og:site_name" content={negocio.nombre} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content={String(ogImage.attributes.width)} />
+    <meta property="og:image:height" content={String(ogImage.attributes.height)} />
+    <meta property="og:image:alt" content="Logotipo de La Mamba Negra Barbería" />
+    <meta name="twitter:card" content="summary" />
+
+    {jsonLd && <script type="application/ld+json" set:html={jsonLd} />}
+  </head>
+  <body>
+    <a class="skip" href="#contenido">Saltar al contenido</a>
+    <Icons />
+    <slot />
+  </body>
+</html>
+
+<style>
+  .skip {
+    position: absolute; left: 12px; top: -60px; z-index: 50;
+    padding: 12px 18px; border-radius: 4px; background: var(--color-red); color: #fff; font-weight: 700;
+  }
+  .skip:focus { top: 12px; color: #fff; }
+</style>

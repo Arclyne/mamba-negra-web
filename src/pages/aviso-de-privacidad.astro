@@ -1,0 +1,86 @@
+---
+// RNF-08: aviso de privacidad integral (LFPDPPP).
+// BORRADOR: completar los datos entre corchetes en src/config/negocio.ts y revisarlo
+// con un asesor antes de publicar.
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { negocio, direccionCompleta } from '../config/negocio';
+
+const { responsable, correo, actualizado } = negocio.privacidad;
+---
+
+<Base title={`Aviso de privacidad · ${negocio.nombre}`} description={`Aviso de privacidad integral de ${negocio.nombreLegal}.`}>
+  <Header inicio="/" />
+  <main id="contenido" class="wrap py-16 md:py-24">
+    <article class="aviso mx-auto max-w-[46rem]">
+      <p class="eyebrow">Legal</p>
+      <h1 class="display mt-4 mb-4 text-[clamp(56px,8vw,96px)]">Aviso de privacidad</h1>
+      <p class="text-soft">Última actualización: {actualizado}</p>
+
+      <h2>1. Responsable</h2>
+      <p>
+        {responsable}, en su carácter de titular de {negocio.nombreLegal}, con domicilio en {direccionCompleta}, México,
+        es responsable del tratamiento de tus datos personales conforme a la Ley Federal de Protección de Datos
+        Personales en Posesión de los Particulares.
+      </p>
+
+      <h2>2. Datos que recabamos</h2>
+      <p>Cuando reservas una cita en línea recabamos:</p>
+      <ul>
+        <li>Nombre.</li>
+        <li>Correo electrónico.</li>
+        <li>Teléfono, si decides proporcionarlo.</li>
+        <li>Servicio, fecha y hora de la cita, y las notas que agregues.</li>
+      </ul>
+      <p>
+        Si nos escribes por WhatsApp o Instagram, tratamos tu nombre de perfil, tu número o usuario y el contenido de
+        la conversación. No recabamos datos personales sensibles.
+      </p>
+
+      <h2>3. Para qué los usamos</h2>
+      <p>Usamos tus datos únicamente para:</p>
+      <ul>
+        <li>Agendar, confirmar, reagendar o cancelar tu cita.</li>
+        <li>Enviarte la confirmación y el recordatorio de tu cita.</li>
+        <li>Responder tus mensajes y solicitudes.</li>
+      </ul>
+      <p>No usamos tus datos para publicidad ni los vendemos.</p>
+
+      <h2>4. Con quién los compartimos</h2>
+      <p>
+        Las reservas se gestionan con Cal.com, un proveedor que almacena y procesa los datos de la cita por cuenta
+        nuestra y que puede alojarlos fuera de México. Este sitio web no guarda tus datos: el formulario de reserva
+        pertenece a Cal.com. Si nos contactas por WhatsApp o Instagram, esos datos también son tratados por Meta
+        conforme a sus propias políticas. No compartimos tus datos con otros terceros, salvo que la ley lo exija.
+      </p>
+
+      <h2>5. Tus derechos (ARCO)</h2>
+      <p>
+        Puedes acceder a tus datos, rectificarlos, cancelarlos u oponerte a su uso, así como revocar tu consentimiento,
+        escribiendo a <a href={`mailto:${correo}`}>{correo}</a>. Indica tu nombre, el derecho que quieres ejercer y un
+        medio para responderte. Atenderemos tu solicitud en los plazos que establece la ley.
+      </p>
+
+      <h2>6. Cookies y servicios de terceros</h2>
+      <p>
+        Este sitio no usa cookies propias ni herramientas de analítica. El calendario de reservas de Cal.com y el mapa de
+        Google Maps (que solo se carga si pulsas «Mostrar mapa») pueden usar sus propias cookies.
+      </p>
+
+      <h2>7. Cambios a este aviso</h2>
+      <p>Cualquier cambio a este aviso se publicará en esta misma página, con su fecha de actualización.</p>
+    </article>
+  </main>
+  <Footer inicio="/" />
+</Base>
+
+<style>
+  .aviso h2 { font-family: var(--font-display); font-weight: 400; font-size: 34px; letter-spacing: .03em; line-height: 1.1; margin: 48px 0 12px; }
+  .aviso p, .aviso li { color: var(--color-body); }
+  .aviso p { margin: 0 0 14px; }
+  .aviso ul { margin: 0 0 14px; padding-left: 1.2em; list-style: disc; }
+  .aviso li { margin-bottom: 4px; }
+  .aviso li::marker { color: var(--color-red); }
+  .aviso a { text-decoration: underline; text-underline-offset: 3px; }
+</style>

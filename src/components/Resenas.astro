@@ -1,0 +1,104 @@
+---
+import BgTool from './BgTool.astro';
+import SectionTitle from './SectionTitle.astro';
+import { negocio } from '../config/negocio';
+import { resenas } from '../lib/resenas';
+
+const { calificacion, totalResenas } = negocio.google;
+---
+
+{resenas.length > 0 && (
+  <section class="section" id="resenas" aria-labelledby="t-resenas">
+    <BgTool tool="scissors" class="bt-rev" />
+    <div class="wrap">
+      <div class="sec-head">
+        <SectionTitle eyebrow="Lo que dicen nuestros clientes" id="t-resenas">Reseñas</SectionTitle>
+      </div>
+      <div class="rev-top">
+        {calificacion !== null && (
+          <div class="rev-score">
+            <strong>{calificacion.toFixed(1)}</strong>
+            <span class="stars on" role="img" aria-label={`${calificacion.toFixed(1)} de 5 estrellas`}>
+              {Array.from({ length: 5 }, () => <svg aria-hidden="true"><use href="#i-star" /></svg>)}
+            </span>
+            {totalResenas !== null && <span>{totalResenas} reseñas en Google</span>}
+          </div>
+        )}
+        <div class="grow"></div>
+        <div class="btns">
+          <a class="btn btn-red" href={negocio.resenasUrl} target="_blank" rel="noopener">Déjanos tu reseña</a>
+          <a class="btn btn-ghost" href={negocio.resenasUrl} target="_blank" rel="noopener">Ver todas en Google</a>
+        </div>
+      </div>
+      <div class="revs">
+        {resenas.map((r) => (
+          <figure class="rev">
+            <span class="q" aria-hidden="true">“</span>
+            <span class="stars" role="img" aria-label={`${r.estrellas} de 5 estrellas`}>
+              {Array.from({ length: 5 }, (_, k) => <svg class:list={[{ on: k < r.estrellas }]} aria-hidden="true"><use href="#i-star" /></svg>)}
+            </span>
+            <blockquote>{r.texto}</blockquote>
+            <figcaption>
+              <span class="av" aria-hidden="true">{r.nombre.trim().charAt(0).toUpperCase()}</span>
+              <span class="who"><b>{r.nombre}</b><span>{r.servicio} · {r.fecha}</span></span>
+              <span class="src">{r.fuente}</span>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+
+<style>
+  .rev-top {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; margin-bottom: 28px;
+    padding: 20px 24px; border: 1px solid var(--color-line); border-radius: 8px; background: var(--color-bg-2);
+  }
+  .rev-score { display: flex; align-items: baseline; gap: 12px; }
+  .rev-score strong { font-family: var(--font-display); font-weight: 400; font-size: 48px; line-height: 1; color: var(--color-fg); }
+  .rev-score > span:last-child { font-size: 15px; color: var(--color-soft); }
+  .grow { flex: 1; }
+  .btns { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btns .btn { min-height: 46px; padding: 0 20px; font-size: 14px; }
+  .stars { display: inline-flex; gap: 3px; color: #48484f; }
+  .stars svg { width: 18px; height: 18px; }
+  .stars.on, .stars svg.on { color: var(--color-red-text); }
+
+  .revs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .rev {
+    position: relative; margin: 0; padding: 26px 28px; border-radius: 8px;
+    background: var(--color-bg); border: 1px solid var(--color-line);
+    display: flex; flex-direction: column; gap: 14px; transition: border-color .2s, transform .25s var(--ease);
+  }
+  .rev:hover { border-color: var(--color-line-2); transform: translateY(-3px); }
+  .q { position: absolute; right: 22px; top: 6px; font-family: var(--font-display); font-size: 84px; line-height: 1; color: var(--color-red); opacity: .25; pointer-events: none; }
+  blockquote { margin: 0; font-size: 17px; line-height: 1.6; color: #e4e4e8; text-wrap: pretty; }
+  figcaption { margin-top: auto; display: flex; align-items: center; gap: 12px; padding-top: 14px; border-top: 1px solid #1c1c1f; }
+  .av {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; background: var(--color-surface); border: 1px solid var(--color-line-2);
+    display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 20px; color: var(--color-red-text);
+  }
+  .who { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
+  .who b { font-size: 15px; color: var(--color-fg); }
+  .who span { font-size: 13px; color: var(--color-soft); }
+  .src {
+    margin-left: auto; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--color-muted);
+    border: 1px solid var(--color-line-2); border-radius: 999px; padding: 4px 10px; white-space: nowrap;
+  }
+  section :global(.bt-rev) { width: clamp(180px, 15vw, 230px); right: 3%; bottom: 4%; transform: rotate(152deg); }
+
+  @media (max-width: 1080px) { .revs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) {
+    .revs {
+      display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px;
+      margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); scroll-padding-inline: var(--gutter);
+      padding-bottom: 8px; scrollbar-width: none;
+    }
+    .revs::-webkit-scrollbar { display: none; }
+    .rev { flex: 0 0 86%; scroll-snap-align: start; padding: 22px; }
+    .rev-top { padding: 18px; }
+    .btns { width: 100%; flex-direction: column; }
+    .btns .btn { width: 100%; }
+  }
+</style>
