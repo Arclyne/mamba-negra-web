@@ -70,9 +70,14 @@ const conCal = usuario.trim() !== '';
     embed.appendChild(el);
     montados.set(actual, el);
     montarCalendario(el, { origin, calLink: d.evento!, namespace: `svc_${actual.replace(/-/g, '_')}` });
-    // Cal.com inserta su iframe; entonces se quita el aviso de carga.
+    // Cal.com inserta su iframe; entonces se quita el aviso de carga y se cambia su título
+    // ("Book a call", en inglés) por uno en español: es el globito al pasar el cursor y lo que leen los lectores de pantalla.
     new MutationObserver((_, obs) => {
-      if (el.querySelector('iframe')) { $('calLoading')?.remove(); obs.disconnect(); }
+      const iframe = el.querySelector('iframe');
+      if (!iframe) return;
+      iframe.title = `Calendario para reservar: ${d.nombre}`;
+      $('calLoading')?.remove();
+      obs.disconnect();
     }).observe(el, { childList: true, subtree: true });
   }
 
