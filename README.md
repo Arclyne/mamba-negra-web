@@ -21,23 +21,38 @@ Requiere Node 22.12 o superior.
 | Precios, servicios, duración, combos     | `src/content/servicios.json`              |
 | Dirección, horario, WhatsApp, Instagram  | `src/config/negocio.ts`                   |
 | Cuenta de Cal.com                        | `src/config/negocio.ts` → `calcom.usuario` |
-| Fotos de la galería                      | `src/assets/galeria/` + `src/content/galeria.json` |
+| Cortes (fotos por perspectiva)           | `src/assets/galeria/cortes/` + `src/content/cortes.json` |
+| Fotos de reconocimientos                 | `src/assets/galeria/reconocimientos/` + `src/content/galeria.json` |
 | Reseñas (solo reales, con permiso)       | `src/content/resenas.json`                |
 | Aviso de privacidad                      | `src/config/negocio.ts` → `privacidad`    |
 
-El orden de `servicios.json` y `galeria.json` es el orden en que aparecen en el sitio.
+El orden de `servicios.json`, `cortes.json` y `galeria.json` es el orden en que aparecen en el sitio.
 
 ### Servicios
 
 Cada servicio lleva `id`, `nombre`, `descripcion`, `precio` (MXN), `duracion` (60 o 120 min),
 `categoria` (`servicio` o `combo`) y, opcionalmente, `ahorro`. Si un dato no cumple el formato, el build falla y dice cuál.
 
-### Galería
+### Cortes
 
-1. Copia la foto (JPG, PNG o WebP, idealmente de 1600 px o más) a `src/assets/galeria/`.
-2. En `galeria.json`, agrega `"archivo": "nombre-de-la-foto.jpg"` y un `"alt"` que describa la foto.
+Cada corte tiene un nombre y una foto por perspectiva: `frente`, `izquierdo`, `derecho` y `atras`.
+Las que falten aparecen deshabilitadas en su tarjeta. Para agregar un corte:
 
-Astro la convierte a WebP en varios tamaños y la carga de forma diferida. Sin `archivo`, se muestra un espacio reservado.
+1. Copia sus fotos a `src/assets/galeria/cortes/` (JPG, PNG o WebP, verticales 4:5 de preferencia).
+2. Agrega una entrada a `cortes.json`:
+
+```json
+{ "id": "mid-fade", "nombre": "Mid fade", "vistas": { "frente": "cortes/mid-fade-frente.jpg", "atras": "cortes/mid-fade-atras.jpg" } }
+```
+
+### Reconocimientos
+
+Copia la foto a `src/assets/galeria/reconocimientos/` y agrégala a `galeria.json` con `tipo`
+(`Competencia` o `Reconocimiento`), `titulo`, `archivo` y un `alt` que describa la foto.
+Si el encuadre corta caras, ajusta `"posicion": "center 20%"`.
+
+Astro convierte todas las fotos a WebP en varios tamaños y las carga de forma diferida.
+Antes de publicar fotos de clientes, confirma que dieron su permiso.
 
 ### Reseñas
 
@@ -75,6 +90,6 @@ Si el dominio final no es `lamambanegra.com.mx`, cámbialo en `astro.config.mjs`
 - [ ] Registrar el dominio y confirmar `site` en `astro.config.mjs`
 - [ ] Crear la cuenta de Cal.com del negocio y sus tipos de evento; llenar `calcom.usuario`
 - [ ] Completar los datos del responsable en `negocio.ts` → `privacidad` y revisar el aviso con un asesor
-- [ ] Subir las fotos reales de la galería
+- [ ] Confirmar el permiso de los clientes que aparecen en las fotos de cortes
 - [ ] Agregar reseñas reales (opcional)
 # mamba-negra-web

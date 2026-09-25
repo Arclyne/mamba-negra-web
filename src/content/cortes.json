@@ -1,0 +1,34 @@
+[
+  {
+    "id": "pompadour-clasico",
+    "nombre": "Pompadour clásico",
+    "vistas": {
+      "frente": "cortes/pompadour-frente.webp",
+      "izquierdo": "cortes/pompadour-izquierdo.webp"
+    }
+  },
+  {
+    "id": "crop-texturizado",
+    "nombre": "Crop texturizado con fade",
+    "vistas": {
+      "izquierdo": "cortes/crop-izquierdo.webp",
+      "derecho": "cortes/crop-derecho.webp",
+      "atras": "cortes/crop-atras.webp"
+    }
+  },
+  {
+    "id": "peinado-hacia-atras",
+    "nombre": "Peinado hacia atrás con línea",
+    "vistas": {
+      "frente": "cortes/peinado-atras-frente.webp",
+      "derecho": "cortes/peinado-atras-derecho.webp"
+    }
+  },
+  {
+    "id": "fade-rayo",
+    "nombre": "Fade con diseño de rayo",
+    "vistas": {
+      "derecho": "cortes/rayo-derecho.webp"
+    }
+  }
+]

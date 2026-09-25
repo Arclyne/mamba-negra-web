@@ -1,8 +1,45 @@
 [
-  { "id": "marco-lavin", "tipo": "Reconocimiento", "titulo": "Marco Lavín", "tamano": "grande" },
-  { "id": "batalla-barberos-xl-2024", "tipo": "Competencia", "titulo": "Batalla de Barberos XL 2024" },
-  { "id": "ema-master", "tipo": "Reconocimiento", "titulo": "EMA Master" },
-  { "id": "crazy-barber-cup", "tipo": "Competencia", "titulo": "Crazy Barber Cup" },
-  { "id": "crazy-barber-cup-red-carpet", "tipo": "Competencia", "titulo": "Crazy Barber Cup · Red Carpet" },
-  { "id": "batalla-barberos-xl", "tipo": "Competencia", "titulo": "Batalla de Barberos XL", "tamano": "ancho" }
+  {
+    "id": "marco-lavin",
+    "tipo": "Reconocimiento",
+    "titulo": "Marco Lavín",
+    "archivo": "reconocimientos/marco-lavin.jpg",
+    "alt": "Nuestro barbero con su reconocimiento del seminario de peluquería de Bad Boys y Marco Lavín"
+  },
+  {
+    "id": "batalla-barberos-xl-2024",
+    "tipo": "Competencia",
+    "titulo": "Batalla de Barberos XL 2024",
+    "archivo": "reconocimientos/batalla-barberos-xl-2024.jpg",
+    "alt": "Nuestro barbero con su reconocimiento de Batalla de Barberos XL 2024",
+    "posicion": "center 35%"
+  },
+  {
+    "id": "ema-master",
+    "tipo": "Reconocimiento",
+    "titulo": "EMA Master",
+    "archivo": "reconocimientos/ema-master.jpg",
+    "alt": "Nuestro barbero con su reconocimiento del seminario EMA Medina Tour en Xalapa"
+  },
+  {
+    "id": "crazy-barber-cup",
+    "tipo": "Competencia",
+    "titulo": "Crazy Barber Cup",
+    "archivo": "reconocimientos/crazy-barber-cup.jpg",
+    "alt": "Nuestro barbero en el escenario de Crazy Barber Cup"
+  },
+  {
+    "id": "crazy-barber-cup-red-carpet",
+    "tipo": "Competencia",
+    "titulo": "Crazy Barber Cup · Red Carpet",
+    "archivo": "reconocimientos/crazy-barber-cup-red-carpet.jpg",
+    "alt": "Nuestro barbero en la alfombra roja de Crazy Barber Cup con su reconocimiento de Barbero Loco MX"
+  },
+  {
+    "id": "batalla-barberos-xl",
+    "tipo": "Competencia",
+    "titulo": "Batalla de Barberos XL",
+    "archivo": "reconocimientos/batalla-barberos-xl.jpg",
+    "alt": "Nuestro barbero con su reconocimiento bajo el letrero de Batalla de Barberos XL"
+  }
 ]

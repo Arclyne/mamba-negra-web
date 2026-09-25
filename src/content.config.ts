@@ -18,17 +18,35 @@ const servicios = defineCollection({
   }),
 });
 
-// RF-03: `archivo` es el nombre de una foto dentro de src/assets/galeria/.
-// Astro la convierte a WebP con carga diferida. Sin archivo se muestra un espacio reservado.
+// RF-03: las fotos viven en src/assets/galeria/; `archivo` es su ruta dentro de esa carpeta.
+// Astro las convierte a WebP en varios tamaños y las carga de forma diferida.
+
+// Reconocimientos y competencias. `posicion` (opcional) ajusta el encuadre, p. ej. "center 30%".
 const galeria = defineCollection({
   loader: file('src/content/galeria.json'),
   schema: z.object({
-    tipo: z.enum(['Competencia', 'Reconocimiento', 'Trabajo']),
+    tipo: z.enum(['Competencia', 'Reconocimiento']),
     titulo: z.string(),
-    archivo: z.string().optional(),
-    alt: z.string().optional(),
-    tamano: z.enum(['normal', 'grande', 'ancho']).default('normal'),
+    archivo: z.string(),
+    alt: z.string(),
+    posicion: z.string().optional(),
   }),
 });
 
-export const collections = { servicios, galeria };
+// Cortes: un nombre y una foto por perspectiva. Las perspectivas que falten se muestran deshabilitadas.
+const cortes = defineCollection({
+  loader: file('src/content/cortes.json'),
+  schema: z.object({
+    nombre: z.string(),
+    vistas: z
+      .object({
+        frente: z.string().optional(),
+        izquierdo: z.string().optional(),
+        derecho: z.string().optional(),
+        atras: z.string().optional(),
+      })
+      .refine((v) => Object.values(v).some(Boolean), 'Cada corte necesita al menos una foto'),
+  }),
+});
+
+export const collections = { servicios, galeria, cortes };
