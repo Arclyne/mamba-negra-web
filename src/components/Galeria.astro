@@ -46,7 +46,7 @@ const cortes = enOrden(await getCollection('cortes'), datosCortes).map((c) => {
                 src={v.img!}
                 alt={`${c.nombre}, vista ${v.larga.toLowerCase()}`}
                 widths={anchos(v.img!)}
-                sizes="(max-width: 640px) 100vw, (max-width: 1080px) 50vw, 300px"
+                sizes="(max-width: 640px) 100vw, (max-width: 1080px) 50vw, 400px"
                 class:list={['foto', { activa: v.id === c.inicial }]}
                 data-vista={v.id}
               />
@@ -88,7 +88,7 @@ const cortes = enOrden(await getCollection('cortes'), datosCortes).map((c) => {
 <style>
 
   /* Cortes */
-  .cortes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  .cortes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
   .corte {
     display: flex; flex-direction: column; border: 1px solid var(--color-line); border-radius: 8px;
     background: var(--color-bg); overflow: hidden; transition: border-color .2s, transform .25s var(--ease), box-shadow .25s;

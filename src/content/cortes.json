@@ -17,18 +17,12 @@
     }
   },
   {
-    "id": "peinado-hacia-atras",
-    "nombre": "Peinado hacia atrás con línea",
+    "id": "peinado-rayo",
+    "nombre": "Peinado hacia atrás con rayo",
     "vistas": {
-      "frente": "cortes/peinado-atras-frente.webp",
-      "derecho": "cortes/peinado-atras-derecho.webp"
-    }
-  },
-  {
-    "id": "fade-rayo",
-    "nombre": "Fade con diseño de rayo",
-    "vistas": {
-      "derecho": "cortes/rayo-derecho.webp"
+      "frente": "cortes/rayo-frente.webp",
+      "derecho": "cortes/rayo-derecho.webp",
+      "atras": "cortes/rayo-atras.webp"
     }
   }
 ]
