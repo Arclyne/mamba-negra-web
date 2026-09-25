@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets';
 import BgTool from './BgTool.astro';
 import logo from '../assets/logo.webp';
-import { negocio } from '../config/negocio';
+import { negocio, waLink } from '../config/negocio';
 ---
 
 <div class="hero" id="inicio">
@@ -14,7 +14,10 @@ import { negocio } from '../config/negocio';
       <p class="lead">Donde el estilo clásico se fusiona con la cultura contemporánea. Cada corte, una obra maestra.</p>
       <div class="cta">
         <a class="btn btn-red" href="#reservar">Reservar cita</a>
-        <a class="btn btn-ghost" href="#servicios">Ver precios</a>
+        <!-- Acción distinta a reservar: para quien prefiere preguntar antes de apartar su cita. -->
+        <a class="btn btn-ghost" href={waLink()} target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+          <svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg><span><span class="largo">Escríbenos por </span>WhatsApp</span>
+        </a>
       </div>
       <div class="facts">
         <span><svg class="ico" aria-hidden="true"><use href="#i-clock" /></svg>{negocio.horario.resumen}</span>
@@ -184,6 +187,7 @@ import { negocio } from '../config/negocio';
   }
   @media (max-width: 640px) {
     h1 { font-size: min(96px, 32cqw); }
+    .largo { display: none; }
     .cta .btn { flex: 1; padding: 0 12px; }
   }
   @media (prefers-reduced-motion: reduce) {
