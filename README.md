@@ -36,7 +36,7 @@ Cada servicio lleva `id`, `nombre`, `descripcion`, `precio` (MXN), `duracion` (6
 ### Cortes
 
 Cada corte tiene un nombre y una foto por perspectiva: `frente`, `izquierdo`, `derecho` y `atras`.
-Las que falten aparecen deshabilitadas en su tarjeta. Para agregar un corte:
+Solo se muestran los botones de las perspectivas que tienen foto (ninguno si hay una sola). Los cortes van en un carrusel, así que puedes agregar los que quieras sin que la sección crezca. Para agregar un corte:
 
 1. Copia sus fotos a `src/assets/galeria/cortes/` (JPG, PNG o WebP, verticales 4:5 de preferencia).
 2. Agrega una entrada a `cortes.json`:

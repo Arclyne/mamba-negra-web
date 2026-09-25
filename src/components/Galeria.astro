@@ -41,12 +41,19 @@ const cortes = await Promise.all(
   <div class="wrap">
     <div class="sec-head">
       <SectionTitle eyebrow="Cortes" id="t-trabajo">Nuestro trabajo</SectionTitle>
-      <a class="btn btn-ghost" href={negocio.instagram.url} target="_blank" rel="noopener">
-        <svg class="ico" aria-hidden="true"><use href="#i-ig" /></svg>Ver más en Instagram
-      </a>
+      <div class="sec-acciones">
+        <a class="btn btn-ghost" href={negocio.instagram.url} target="_blank" rel="noopener">
+          <svg class="ico" aria-hidden="true"><use href="#i-ig" /></svg>Ver más en Instagram
+        </a>
+        <div class="car-nav" id="carNav" hidden>
+          <button type="button" class="car-btn" data-dir="-1" aria-controls="cortes" aria-label="Cortes anteriores">‹</button>
+          <button type="button" class="car-btn" data-dir="1" aria-controls="cortes" aria-label="Más cortes">›</button>
+        </div>
+      </div>
     </div>
 
-    <div class="cortes">
+    <!-- Carrusel: una sola fila que se desliza, para que la sección no crezca al agregar cortes. -->
+    <div class="cortes" id="cortes" role="region" aria-roledescription="carrusel" aria-label="Cortes" tabindex="0">
       {cortes.map((c) => (
         <article class="corte" data-corte>
           <div class="fotos">
@@ -73,15 +80,16 @@ const cortes = await Promise.all(
           </div>
           <div class="info">
             <h3>{c.nombre}</h3>
-            <div class="vistas" role="group" aria-label={`Perspectivas de ${c.nombre}`}>
-              {c.vistas.map((v) => (
-                <button type="button" data-ver={v.id} disabled={!v.img}
-                  aria-pressed={v.id === c.inicial ? 'true' : 'false'}
-                  aria-label={v.img ? v.larga : `${v.larga} (sin foto)`} title={v.larga}>
-                  {v.corta}
-                </button>
-              ))}
-            </div>
+            {c.vistas.filter((v) => v.img).length > 1 && (
+              <div class="vistas" role="group" aria-label={`Perspectivas de ${c.nombre}`}>
+                {c.vistas.filter((v) => v.img).map((v) => (
+                  <button type="button" data-ver={v.id} aria-pressed={v.id === c.inicial ? 'true' : 'false'}
+                    aria-label={v.larga} title={v.larga}>
+                    {v.corta}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </article>
       ))}
@@ -91,6 +99,26 @@ const cortes = await Promise.all(
 </section>
 
 <script>
+  // Carrusel de cortes: flechas en escritorio (en celular se desliza con el dedo).
+  const pista = document.getElementById('cortes')!;
+  const nav = document.getElementById('carNav')!;
+  const [ant, sig] = Array.from(nav.querySelectorAll<HTMLButtonElement>('.car-btn'));
+  const actualizar = () => {
+    const max = pista.scrollWidth - pista.clientWidth;
+    nav.hidden = max <= 2; // sin flechas si todos los cortes caben
+    ant.disabled = pista.scrollLeft <= 2;
+    sig.disabled = pista.scrollLeft >= max - 2;
+  };
+  nav.addEventListener('click', (e) => {
+    const b = (e.target as Element).closest<HTMLButtonElement>('.car-btn');
+    if (!b) return;
+    const suave = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    pista.scrollBy({ left: Number(b.dataset.dir) * pista.clientWidth * 0.9, behavior: suave });
+  });
+  pista.addEventListener('scroll', actualizar, { passive: true });
+  window.addEventListener('resize', actualizar);
+  actualizar();
+
   // Cambia la foto de un corte según la perspectiva elegida.
   document.querySelectorAll<HTMLElement>('[data-corte]').forEach((corte) => {
     const botones = corte.querySelectorAll<HTMLButtonElement>('[data-ver]');
@@ -119,7 +147,24 @@ const cortes = await Promise.all(
 <style>
 
   /* Cortes */
-  .cortes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  .sec-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .car-nav { display: flex; gap: 8px; }
+  .car-btn {
+    width: 52px; height: 52px; border-radius: 4px; border: 1px solid var(--color-line-2); background: transparent;
+    color: var(--color-fg); font-size: 26px; line-height: 1; cursor: pointer; transition: border-color .15s, background .15s, opacity .15s;
+  }
+  .car-btn:hover:not(:disabled) { border-color: var(--color-red); background: var(--color-red-dim); }
+  .car-btn:disabled { opacity: .3; cursor: default; }
+
+  /* Carrusel: 4 cortes visibles en escritorio; el resto se alcanza con las flechas o deslizando. */
+  .cortes {
+    display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+    /* Espacio para que el realce y la sombra al señalar una tarjeta no se corten. */
+    padding: 6px 2px 28px; margin: -6px -2px -28px; outline: none;
+  }
+  .cortes::-webkit-scrollbar { display: none; }
+  .cortes:focus-visible { box-shadow: inset 0 0 0 2px var(--color-red-text); border-radius: 8px; }
+  .cortes > .corte { flex: 0 0 calc((100% - 48px) / 4); scroll-snap-align: start; }
   .corte {
     display: flex; flex-direction: column; border: 1px solid var(--color-line); border-radius: 8px;
     background: var(--color-bg); overflow: hidden; transition: border-color .2s, transform .25s var(--ease), box-shadow .25s;
@@ -138,7 +183,8 @@ const cortes = await Promise.all(
   .fotos :global(.foto.activa) { opacity: 1; transform: none; }
   .info { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 16px; }
   h3 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 22px; letter-spacing: .02em; text-transform: uppercase; line-height: 1.05; }
-  .vistas { margin-top: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .vistas { margin-top: auto; display: flex; gap: 6px; }
+  .vistas button { flex: 1; }
   .vistas button {
     min-height: 40px; padding: 0 4px; border: 1px solid var(--color-line-2); border-radius: 4px;
     background: transparent; color: var(--color-body); font-size: 12px; font-weight: 700; letter-spacing: .06em;
@@ -146,25 +192,20 @@ const cortes = await Promise.all(
   }
   .vistas button:hover:not(:disabled) { border-color: var(--color-soft); color: var(--color-fg); }
   .vistas button[aria-pressed="true"] { background: var(--color-red); border-color: var(--color-red); color: #fff; }
-  .vistas button:disabled { color: #55555c; border-color: #1f1f23; border-style: dashed; cursor: not-allowed; }
 
   section :global(.bt-trab) { width: clamp(200px, 20vw, 300px); left: -2%; top: 4%; transform: rotate(-22deg); }
 
   @media (max-width: 1080px) {
-    .cortes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cortes > .corte { flex-basis: calc((100% - 32px) / 2.4); }
   }
   @media (max-width: 900px) {
     section :global(.bt-trab) { width: 46vw; left: auto; right: -10%; top: 2%; }
   }
-  /* En celular los cortes se deslizan de lado en lugar de apilarse. */
+  /* En celular se desliza con el dedo, a todo el ancho de la pantalla. */
   @media (max-width: 640px) {
-    .cortes {
-      display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px;
-      margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); scroll-padding-inline: var(--gutter);
-      padding-bottom: 8px; scrollbar-width: none;
-    }
-    .cortes::-webkit-scrollbar { display: none; }
-    .corte { flex: 0 0 82%; scroll-snap-align: start; }
+    .car-nav { display: none; }
+    .cortes { margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); scroll-padding-inline: var(--gutter); gap: 12px; }
+    .cortes > .corte { flex-basis: 82%; }
     .corte:hover { transform: none; }
   }
 </style>
