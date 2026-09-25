@@ -71,13 +71,6 @@ const sinJs = (id: string, nombre: string, precio: number, calEvento?: string) =
 
     <Reservar />
 
-    {conCal && (
-      <div class="rules">
-        <span><svg class="ico" aria-hidden="true"><use href="#i-clock" /></svg>Reserva hasta 30 min antes</span>
-        <span><svg class="ico" aria-hidden="true"><use href="#i-undo" /></svg>Cancela o cambia hasta 1 h antes, desde tu correo</span>
-        <span><svg class="ico" aria-hidden="true"><use href="#i-mail" /></svg>Confirmación y recordatorio por correo</span>
-      </div>
-    )}
   </div>
 </section>
 
@@ -151,9 +144,6 @@ const sinJs = (id: string, nombre: string, precio: number, calEvento?: string) =
   .intro { margin: 16px 0 0; max-width: 30em; color: var(--color-body); }
   /* En el paso 2 las pestañas se ocultan, pero conservan su lugar para que el título no salte. */
   .sec-head:has(~ #paso1[hidden]) .tabs { visibility: hidden; }
-  .rules { display: flex; flex-wrap: wrap; gap: 12px 40px; margin-top: 28px; font-size: 16px; color: var(--color-body); }
-  .rules span { display: flex; align-items: center; gap: 10px; }
-  .rules .ico { stroke: var(--color-red-text); }
 
   .tabs { position: relative; display: flex; gap: 6px; padding: 6px; background: var(--color-bg); border: 1px solid var(--color-line); border-radius: 6px; }
   .tabs button {
@@ -219,7 +209,6 @@ const sinJs = (id: string, nombre: string, precio: number, calEvento?: string) =
     .card { padding: 20px; }
     h3 { font-size: 24px; }
     .price { font-size: 27px; }
-    .rules { flex-direction: column; gap: 12px; }
   }
   @media (prefers-reduced-motion: reduce) {
     :global(html.anim) #panel-servicios:not(.play) .card { opacity: 1; }

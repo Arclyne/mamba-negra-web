@@ -20,6 +20,13 @@ const conCal = usuario.trim() !== '';
     <button type="button" class="btn btn-ghost cambiar" id="cambiar">
       <span aria-hidden="true">←</span> Cambiar servicio
     </button>
+    {conCal && (
+      <ul class="rules" aria-label="Condiciones de la reserva">
+        <li><svg class="ico" aria-hidden="true"><use href="#i-clock" /></svg>Reserva hasta 30 min antes</li>
+        <li><svg class="ico" aria-hidden="true"><use href="#i-undo" /></svg>Cancela o cambia hasta 1 h antes, desde tu correo</li>
+        <li><svg class="ico" aria-hidden="true"><use href="#i-mail" /></svg>Confirmación y recordatorio por correo</li>
+      </ul>
+    )}
   </div>
 
   {conCal ? (
@@ -141,6 +148,18 @@ const conCal = usuario.trim() !== '';
   .elegido-txt .p { color: var(--color-fg); font-weight: 600; }
   .cambiar { min-height: 44px; padding: 0 18px; font-size: 13px; }
 
+  /* Condiciones de la reserva: dentro del panel, para que se vean junto al calendario.
+     Cada vez que se abre el panel entran una tras otra (la animación se reinicia al mostrarse). */
+  .rules {
+    flex-basis: 100%; list-style: none; margin: 4px 0 0; padding: 0;
+    display: flex; flex-wrap: wrap; gap: 10px 32px; font-size: 15px; color: var(--color-body);
+  }
+  .rules li { display: flex; align-items: center; gap: 10px; animation: rise .5s var(--ease) both; }
+  .rules li:nth-child(1) { animation-delay: .15s; }
+  .rules li:nth-child(2) { animation-delay: .25s; }
+  .rules li:nth-child(3) { animation-delay: .35s; }
+  .rules .ico { stroke: var(--color-red-text); }
+
   .cal-embed { position: relative; min-height: 460px; }
   .cal-embed :global(.cal-frame) { width: 100%; }
   .cal-loading {
@@ -157,5 +176,6 @@ const conCal = usuario.trim() !== '';
     .book { padding: 20px 4px; }
     .elegido { padding-inline: 16px; }
     .cambiar { width: 100%; }
+    .rules { flex-direction: column; gap: 8px; font-size: 14px; }
   }
 </style>
