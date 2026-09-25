@@ -74,7 +74,15 @@ Para activar el calendario:
    desactivar por completo la cancelación o el reagendado, no limitarlos por tiempo. Por eso el sitio lo pide
    («avísanos con 1 h de anticipación») en lugar de prometer que se bloquea.
 
-El calendario (un iframe de Cal.com) solo se descarga cuando alguien llega a la sección de reservas o elige un servicio.
+La reserva tiene tres pasos:
+1. **Servicio:** las tarjetas de «Lo que hacemos».
+2. **Día y hora:** calendario propio con el diseño del sitio. Los horarios salen de la API pública de Cal.com
+   (`src/scripts/horarios.ts`, sin clave): ya respetan el horario, la comida, el aviso mínimo, las citas
+   existentes y lo anotado en el Google Calendar conectado.
+3. **Datos:** «Continuar» abre el formulario de Cal.com ya en esa hora (`?slot=`). Cal.com guarda la cita,
+   verifica el correo y manda confirmación y recordatorio.
+
+Si la API de horarios falla, el sitio muestra el calendario completo de Cal.com como respaldo.
 Los botones «Reservar» de cada tarjeta y los enlaces `/?servicio=<id>#reservar` abren la reserva con ese servicio ya elegido.
 
 ## Despliegue (Netlify)
