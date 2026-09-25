@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Identidad visual: negro, rojo y cromo. Bebas Neue para títulos, DM Sans para texto.
+/* Identidad visual: negro, rojo y cromo. Anton (en mayúsculas) para títulos, DM Sans para texto.
    Estos tokens generan utilidades de Tailwind (bg-surface, text-red-text, font-display…)
    y variables CSS (--color-red…) que usan los estilos de cada componente. */
 @theme static {
@@ -19,9 +19,7 @@
   --color-red-dim: #2a0d0f;
   --color-wa: #25d366;
 
-  --font-display: "Bebas Neue", Impact, "Arial Narrow", sans-serif;
-  /* Solo para el título grande del inicio: más grueso que Bebas Neue. */
-  --font-hero: "Anton", Impact, "Arial Narrow", sans-serif;
+  --font-display: "Anton", Impact, "Arial Narrow", sans-serif;
   --font-sans: "DM Sans Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --ease-out-soft: cubic-bezier(0.2, 0.75, 0.2, 1);
@@ -44,6 +42,7 @@
     color: var(--color-fg);
     font-family: var(--font-sans);
     font-size: 17px;
+    font-weight: 500;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
   }
@@ -63,8 +62,8 @@
   .wrap { max-width: var(--maxw); margin: 0 auto; padding-inline: var(--gutter); }
 
   .display {
-    font-family: var(--font-display); font-weight: 400; letter-spacing: .01em; line-height: .9;
-    margin: 0; text-wrap: balance;
+    font-family: var(--font-display); font-weight: 400; letter-spacing: .005em; line-height: .95;
+    text-transform: uppercase; margin: 0; text-wrap: balance;
   }
   .eyebrow {
     display: flex; align-items: center; gap: 12px; margin: 0;
@@ -76,7 +75,7 @@
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 10px;
     min-height: 52px; padding: 0 28px; border-radius: 4px; border: 1px solid transparent;
-    font-weight: 700; font-size: 15px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;
+    font-weight: 800; font-size: 15px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;
     transition: background .15s, border-color .15s, color .15s, transform .2s var(--ease), box-shadow .2s;
   }
   .btn:active { transform: scale(.97); }
@@ -98,7 +97,7 @@
     display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
     gap: 24px 48px; margin-bottom: clamp(28px, 4vw, 48px);
   }
-  .sec-title { font-size: clamp(56px, 7vw, 96px); margin-top: 18px; }
+  .sec-title { font-size: clamp(48px, 6.2vw, 84px); margin-top: 18px; }
 
   /* Ilustraciones de herramientas al fondo */
   .bg-tool {
