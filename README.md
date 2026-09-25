@@ -81,7 +81,8 @@ Los botones «Reservar» de cada tarjeta y los enlaces `/?servicio=<id>#reservar
 
 `netlify.toml` ya define el build (`npm run build` → `dist/`) y las cabeceras de seguridad y caché.
 Conecta el repositorio del negocio en Netlify con despliegue automático desde `main`.
-Si el dominio final no es `lamambanegra.com.mx`, cámbialo en `astro.config.mjs` o define la variable `SITE_URL` en Netlify.
+Las URLs canónicas y el sitemap usan el dominio principal del proyecto en Netlify (variable `URL`, automática).
+Al conectar el dominio propio en Netlify se actualizan solas en el siguiente despliegue.
 
 ## Reglas
 
@@ -90,7 +91,7 @@ Si el dominio final no es `lamambanegra.com.mx`, cámbialo en `astro.config.mjs`
 
 ## Pendiente antes de publicar
 
-- [ ] Registrar el dominio y confirmar `site` en `astro.config.mjs`
+- [ ] Registrar el dominio a nombre del negocio y conectarlo en Netlify
 - [ ] Crear la cuenta de Cal.com del negocio y sus tipos de evento; llenar `calcom.usuario`
 - [ ] Revisar el aviso de privacidad con un asesor
 - [ ] Confirmar el permiso de los clientes que aparecen en las fotos de cortes
