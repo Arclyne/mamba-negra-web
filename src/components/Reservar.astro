@@ -18,7 +18,11 @@ const conCal = usuario.trim() !== '';
       <span><span id="sumDur"></span> · <span class="p" id="sumPrice"></span></span>
     </div>
     <div class="acciones">
-      <button type="button" class="btn btn-red" id="otraReserva" hidden>Hacer otra reserva</button>
+      {conCal && (
+        <button type="button" class="btn btn-ghost" id="reiniciar">
+          <svg class="ico" aria-hidden="true"><use href="#i-clock" /></svg><span id="reiniciarTxt">Cambiar horario</span>
+        </button>
+      )}
       <button type="button" class="btn btn-ghost cambiar" id="cambiar">
         <span aria-hidden="true">←</span> Cambiar servicio
       </button>
@@ -56,9 +60,6 @@ const conCal = usuario.trim() !== '';
   const origin = book.dataset.origen!;
   const picks = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-pick]'));
   const embed = document.getElementById('calEmbed');
-  const montados = new Map<string, HTMLElement>();
-  // Servicios cuyo calendario ya muestra "reserva confirmada": se vuelven a montar limpios al regresar.
-  const reservados = new Set<string>();
   let montajes = 0;
   let actual = '';
 
@@ -66,22 +67,33 @@ const conCal = usuario.trim() !== '';
   const datos = (id: string) => picks.find((a) => a.dataset.pick === id)?.dataset;
   const suave = () => (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
 
+  /** Tras una reserva confirmada el botón invita a hacer otra; si no, sirve para elegir otro horario. */
+  function modoReinicio(reservado: boolean) {
+    const b = $('reiniciar');
+    if (!b) return;
+    $('reiniciarTxt')!.textContent = reservado ? 'Hacer otra reserva' : 'Cambiar horario';
+    b.classList.toggle('btn-red', reservado);
+    b.classList.toggle('btn-ghost', !reservado);
+  }
+
   function mostrarCalendario() {
     if (!conCal || !embed) return;
     const d = datos(actual)!;
-    // Si ya se reservó con este calendario, se descarta: si no, seguiría en la pantalla de éxito.
-    if (reservados.has(actual)) {
-      montados.get(actual)?.remove();
-      montados.delete(actual);
-      reservados.delete(actual);
+    // Siempre empieza limpio: un calendario anterior podía quedarse en el formulario
+    // o en la pantalla de "reserva confirmada" y ya no dejaba elegir otro horario.
+    embed.querySelectorAll('.cal-frame').forEach((el) => el.remove());
+    modoReinicio(false);
+    let aviso = $('calLoading');
+    if (!aviso) {
+      aviso = document.createElement('p');
+      aviso.id = 'calLoading';
+      aviso.className = 'cal-loading';
+      aviso.textContent = 'Cargando horarios disponibles…';
+      embed.appendChild(aviso);
     }
-    $('otraReserva')!.hidden = true;
-    montados.forEach((el, id) => { el.hidden = id !== actual; });
-    if (montados.has(actual)) return;
     const el = document.createElement('div');
     el.className = 'cal-frame';
     embed.appendChild(el);
-    montados.set(actual, el);
     const servicio = actual;
     montarCalendario(el, {
       origin,
@@ -89,19 +101,22 @@ const conCal = usuario.trim() !== '';
       // Cada montaje usa su propio namespace de Cal.com para que un calendario nuevo no herede el anterior.
       namespace: `svc_${servicio.replace(/-/g, '_')}_${++montajes}`,
       alReservar: () => {
-        reservados.add(servicio);
-        if (actual === servicio) $('otraReserva')!.hidden = false;
+        if (actual === servicio && el.isConnected) modoReinicio(true);
       },
     });
     // Cal.com inserta su iframe; entonces se quita el aviso de carga y se cambia su título
     // ("Book a call", en inglés) por uno en español: es el globito al pasar el cursor y lo que leen los lectores de pantalla.
-    new MutationObserver((_, obs) => {
+    // Si el script de Cal.com ya estaba cargado, el iframe aparece al instante: por eso se revisa también de inmediato.
+    const listo = () => {
       const iframe = el.querySelector('iframe');
-      if (!iframe) return;
+      if (!iframe) return false;
       iframe.title = `Calendario para reservar: ${d.nombre}`;
       $('calLoading')?.remove();
-      obs.disconnect();
-    }).observe(el, { childList: true, subtree: true });
+      return true;
+    };
+    if (!listo()) {
+      new MutationObserver((_, obs) => { if (listo()) obs.disconnect(); }).observe(el, { childList: true, subtree: true });
+    }
   }
 
   /** Paso 2: oculta las tarjetas y muestra el calendario (o WhatsApp) del servicio elegido. */
@@ -126,7 +141,7 @@ const conCal = usuario.trim() !== '';
     $('paso2-t')!.focus({ preventScroll: true });
   }
 
-  /** Vuelve a las tarjetas; el calendario ya cargado se conserva. */
+  /** Vuelve a las tarjetas. */
   function cambiar() {
     book.hidden = true;
     paso1.hidden = false;
@@ -136,8 +151,8 @@ const conCal = usuario.trim() !== '';
   // Botón "Reservar" de cada tarjeta. Sin JavaScript, el enlace abre Cal.com o WhatsApp directamente.
   picks.forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); elegir(a.dataset.pick!); }));
   $('cambiar')!.addEventListener('click', cambiar);
-  // Después de reservar: vuelve a mostrar el calendario del mismo servicio, limpio.
-  $('otraReserva')!.addEventListener('click', () => { mostrarCalendario(); $('paso2-t')!.focus(); });
+  // "Cambiar horario" (o "Hacer otra reserva" tras confirmar): vuelve al calendario del mismo servicio, limpio.
+  $('reiniciar')?.addEventListener('click', () => { mostrarCalendario(); $('paso2-t')!.focus(); });
   // Enlace directo con servicio: /?servicio=permacologia#reservar (útil para Instagram).
   const deUrl = new URLSearchParams(location.search).get('servicio');
   if (deUrl && datos(deUrl)) elegir(deUrl);
@@ -178,6 +193,7 @@ const conCal = usuario.trim() !== '';
   .elegido-txt .p { color: var(--color-fg); font-weight: 600; }
   .acciones { display: flex; flex-wrap: wrap; gap: 10px; }
   .acciones .btn { min-height: 44px; padding: 0 18px; font-size: 13px; }
+  .acciones .ico { width: 16px; height: 16px; }
 
   /* Condiciones de la reserva: dentro del panel, para que se vean junto al calendario.
      Cada vez que se abre el panel entran una tras otra (la animación se reinicia al mostrarse). */
@@ -193,7 +209,7 @@ const conCal = usuario.trim() !== '';
 
   .cal-embed { position: relative; min-height: 460px; }
   .cal-embed :global(.cal-frame) { width: 100%; }
-  .cal-loading {
+  .cal-embed :global(.cal-loading) {
     position: absolute; inset: 0; margin: 0; display: flex; align-items: center; justify-content: center;
     color: var(--color-muted); font-size: 15px;
   }
