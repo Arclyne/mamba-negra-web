@@ -45,10 +45,13 @@ function bootstrap(origin: string) {
 
 const iniciados = new Set<string>();
 
-/** Monta el calendario de un tipo de evento dentro de `el`. `alReservar` se llama cuando se confirma una reserva. */
+/**
+ * Monta el calendario de un tipo de evento dentro de `el`. `alReservar` se llama cuando se confirma una reserva.
+ * Con `hora` (instante ISO) Cal.com abre directo el formulario de esa hora, sin mostrar su calendario.
+ */
 export function montarCalendario(
   el: HTMLElement,
-  opts: { origin: string; calLink: string; namespace: string; alReservar?: () => void },
+  opts: { origin: string; calLink: string; namespace: string; alReservar?: () => void; hora?: { dia: string; iso: string } },
 ) {
   const Cal = bootstrap(opts.origin);
   const ns = opts.namespace;
@@ -59,7 +62,12 @@ export function montarCalendario(
   Cal.ns[ns]('inline', {
     elementOrSelector: el,
     calLink: opts.calLink,
-    config: { layout: 'month_view', theme: 'dark' },
+    config: {
+      layout: 'month_view',
+      theme: 'dark',
+      // Cal.com recibe estos datos como parámetros de su página (?date=…&month=…&slot=…).
+      ...(opts.hora ? { date: opts.hora.dia, month: opts.hora.dia.slice(0, 7), slot: new Date(opts.hora.iso).toISOString() } : {}),
+    },
   });
   Cal.ns[ns]('ui', {
     theme: 'dark',

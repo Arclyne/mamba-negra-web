@@ -15,7 +15,11 @@ const PERSPECTIVAS = [
   { id: 'atras', corta: 'Atrás', larga: 'Atrás' },
 ] as const;
 
-const SIZES = '(max-width: 640px) 100vw, (max-width: 1080px) 50vw, 400px';
+const SIZES = '(max-width: 640px) 82vw, (max-width: 1080px) 50vw, 300px';
+// En la vista ampliada la foto ocupa casi toda la altura de la pantalla (fotos verticales, ~3:4).
+const SIZES_VISOR = '(max-width: 640px) 100vw, min(90vw, 64vh)';
+// Anchos grandes solo para la vista ampliada: el navegador los descarga únicamente al abrirla.
+const ANCHOS = [320, 480, 640, 960, 1280, 1600];
 
 const cortes = await Promise.all(
   enOrden(await getCollection('cortes'), datosCortes).map(async (c) => {
@@ -24,7 +28,7 @@ const cortes = await Promise.all(
         const ruta = c.data.vistas[p.id];
         if (!ruta) return { ...p, img: undefined };
         const original = foto(ruta);
-        const img = await getImage({ src: original, widths: anchos(original), sizes: SIZES });
+        const img = await getImage({ src: original, widths: anchos(original, ANCHOS), sizes: SIZES });
         return { ...p, img };
       }),
     );
@@ -41,15 +45,22 @@ const cortes = await Promise.all(
   <div class="wrap">
     <div class="sec-head">
       <SectionTitle eyebrow="Cortes" id="t-trabajo">Nuestro trabajo</SectionTitle>
-      <a class="btn btn-ghost" href={negocio.instagram.url} target="_blank" rel="noopener">
-        <svg class="ico" aria-hidden="true"><use href="#i-ig" /></svg>Ver más en Instagram
-      </a>
+      <div class="sec-acciones">
+        <a class="btn btn-ghost" href={negocio.instagram.url} target="_blank" rel="noopener">
+          <svg class="ico" aria-hidden="true"><use href="#i-ig" /></svg>Ver más en Instagram
+        </a>
+        <div class="car-nav" id="carNav" hidden>
+          <button type="button" class="car-btn" data-dir="-1" aria-controls="cortes" aria-label="Cortes anteriores">‹</button>
+          <button type="button" class="car-btn" data-dir="1" aria-controls="cortes" aria-label="Más cortes">›</button>
+        </div>
+      </div>
     </div>
 
-    <div class="cortes">
+    <!-- Carrusel: una sola fila que se desliza, para que la sección no crezca al agregar cortes. -->
+    <div class="cortes" id="cortes" role="region" aria-roledescription="carrusel" aria-label="Cortes" tabindex="0">
       {cortes.map((c) => (
         <article class="corte" data-corte>
-          <div class="fotos">
+          <button type="button" class="fotos" data-ampliar aria-label={`Ver ${c.nombre} en grande`}>
             {/* Solo la perspectiva visible se descarga al cargar; las demás, al pulsar (o señalar) su botón. */}
             {c.vistas.filter((v) => v.img).map((v) => {
               const activa = v.id === c.inicial;
@@ -70,27 +81,72 @@ const cortes = await Promise.all(
                 />
               );
             })}
-          </div>
+            <span class="lupa" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>
+            </span>
+          </button>
           <div class="info">
             <h3>{c.nombre}</h3>
-            <div class="vistas" role="group" aria-label={`Perspectivas de ${c.nombre}`}>
-              {c.vistas.map((v) => (
-                <button type="button" data-ver={v.id} disabled={!v.img}
-                  aria-pressed={v.id === c.inicial ? 'true' : 'false'}
-                  aria-label={v.img ? v.larga : `${v.larga} (sin foto)`} title={v.larga}>
-                  {v.corta}
-                </button>
-              ))}
-            </div>
+            {c.vistas.filter((v) => v.img).length > 1 && (
+              <div class="vistas" role="group" aria-label={`Perspectivas de ${c.nombre}`}>
+                {c.vistas.filter((v) => v.img).map((v) => (
+                  <button type="button" data-ver={v.id} aria-pressed={v.id === c.inicial ? 'true' : 'false'}
+                    aria-label={v.larga} title={v.larga}>
+                    {v.corta}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </article>
       ))}
     </div>
 
   </div>
+
+  <!-- Vista ampliada: se abre al tocar la foto de un corte. -->
+  <dialog class="visor" id="visor" aria-labelledby="visorNombre">
+    <div class="v-marco">
+      <button type="button" class="v-cerrar" data-cerrar aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
+      <button type="button" class="v-flecha v-ant" data-mover="-1" aria-label="Corte anterior">‹</button>
+      <figure>
+        <img id="visorImg" alt="" sizes={SIZES_VISOR} />
+        <figcaption>
+          <div>
+            <p class="v-num" id="visorNum"></p>
+            <h3 id="visorNombre"></h3>
+          </div>
+          <div class="v-vistas" id="visorVistas" role="group" aria-label="Perspectivas"></div>
+        </figcaption>
+      </figure>
+      <button type="button" class="v-flecha v-sig" data-mover="1" aria-label="Siguiente corte">›</button>
+    </div>
+  </dialog>
 </section>
 
 <script>
+  // Carrusel de cortes: flechas en escritorio (en celular se desliza con el dedo).
+  const pista = document.getElementById('cortes')!;
+  const nav = document.getElementById('carNav')!;
+  const [ant, sig] = Array.from(nav.querySelectorAll<HTMLButtonElement>('.car-btn'));
+  const actualizar = () => {
+    const max = pista.scrollWidth - pista.clientWidth;
+    nav.hidden = max <= 2; // sin flechas si todos los cortes caben
+    ant.disabled = pista.scrollLeft <= 2;
+    sig.disabled = pista.scrollLeft >= max - 2;
+  };
+  nav.addEventListener('click', (e) => {
+    const b = (e.target as Element).closest<HTMLButtonElement>('.car-btn');
+    if (!b) return;
+    const suave = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    pista.scrollBy({ left: Number(b.dataset.dir) * pista.clientWidth * 0.9, behavior: suave });
+  });
+  pista.addEventListener('scroll', actualizar, { passive: true });
+  window.addEventListener('resize', actualizar);
+  actualizar();
+
   // Cambia la foto de un corte según la perspectiva elegida.
   document.querySelectorAll<HTMLElement>('[data-corte]').forEach((corte) => {
     const botones = corte.querySelectorAll<HTMLButtonElement>('[data-ver]');
@@ -114,26 +170,119 @@ const cortes = await Promise.all(
       });
     });
   });
+
+  // Vista ampliada. Toma las fotos de las tarjetas, así no hay que repetir datos.
+  const visor = document.getElementById('visor') as HTMLDialogElement;
+  const vImg = document.getElementById('visorImg') as HTMLImageElement;
+  const vNombre = document.getElementById('visorNombre')!;
+  const vNum = document.getElementById('visorNum')!;
+  const vVistas = document.getElementById('visorVistas')!;
+  const tarjetas = Array.from(document.querySelectorAll<HTMLElement>('[data-corte]'));
+  let actual = 0;
+
+  const fotosDe = (t: HTMLElement) => Array.from(t.querySelectorAll<HTMLImageElement>('[data-vista]'));
+
+  function mostrar(i: number, vista?: string) {
+    actual = (i + tarjetas.length) % tarjetas.length;
+    const t = tarjetas[actual];
+    const fotos = fotosDe(t);
+    const f = fotos.find((x) => x.dataset.vista === vista) ?? t.querySelector<HTMLImageElement>('.foto.activa') ?? fotos[0];
+    vImg.srcset = f.getAttribute('srcset') ?? f.dataset.srcset ?? '';
+    vImg.src = f.getAttribute('src') ?? f.dataset.src ?? '';
+    vImg.alt = f.alt;
+    vNombre.textContent = t.querySelector('h3')!.textContent;
+    vNum.textContent = `${actual + 1} / ${tarjetas.length}`;
+    // Botones de perspectiva: los mismos que tiene la tarjeta (ninguno si hay una sola foto).
+    vVistas.replaceChildren(
+      ...Array.from(t.querySelectorAll<HTMLButtonElement>('[data-ver]')).map((b) => {
+        const n = b.cloneNode(true) as HTMLButtonElement;
+        n.setAttribute('aria-pressed', String(b.dataset.ver === f.dataset.vista));
+        n.addEventListener('click', () => mostrar(actual, b.dataset.ver));
+        return n;
+      }),
+    );
+  }
+
+  tarjetas.forEach((t, i) =>
+    t.querySelector('[data-ampliar]')!.addEventListener('click', () => {
+      mostrar(i);
+      visor.showModal();
+    }),
+  );
+  visor.addEventListener('click', (e) => {
+    const el = e.target as Element;
+    const mover = el.closest<HTMLElement>('[data-mover]');
+    if (mover) mostrar(actual + Number(mover.dataset.mover));
+    // Cierra con la X o al tocar fuera de la foto.
+    else if (el === visor || el.closest('[data-cerrar]') || el.classList.contains('v-marco')) visor.close();
+  });
+  visor.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') mostrar(actual - 1);
+    if (e.key === 'ArrowRight') mostrar(actual + 1);
+  });
+  // En celular: deslizar la foto hacia un lado pasa al corte siguiente o anterior.
+  let x0: number | null = null;
+  vImg.addEventListener('pointerdown', (e) => { x0 = e.clientX; });
+  vImg.addEventListener('pointerup', (e) => {
+    if (x0 === null) return;
+    const dx = e.clientX - x0;
+    x0 = null;
+    if (Math.abs(dx) > 50) mostrar(actual + (dx < 0 ? 1 : -1));
+  });
 </script>
 
 <style>
 
   /* Cortes */
-  .cortes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .sec-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .car-nav { display: flex; gap: 8px; }
+  .car-btn {
+    width: 52px; height: 52px; border-radius: 4px; border: 1px solid var(--color-line-2); background: transparent;
+    color: var(--color-fg); font-size: 26px; line-height: 1; cursor: pointer; transition: border-color .15s, background .15s, opacity .15s;
+  }
+  .car-btn:hover:not(:disabled) { border-color: var(--color-red); background: var(--color-red-dim); }
+  .car-btn:disabled { opacity: .3; cursor: default; }
+
+  /* Carrusel: 4 cortes visibles en escritorio; el resto se alcanza con las flechas o deslizando. */
+  .cortes {
+    display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+    /* Espacio para que el realce y la sombra al señalar una tarjeta no se corten. */
+    padding: 6px 2px 28px; margin: -6px -2px -28px; outline: none;
+  }
+  .cortes::-webkit-scrollbar { display: none; }
+  .cortes:focus-visible { box-shadow: inset 0 0 0 2px var(--color-red-text); border-radius: 8px; }
+  .cortes > .corte { flex: 0 0 calc((100% - 48px) / 4); scroll-snap-align: start; }
   .corte {
     display: flex; flex-direction: column; border: 1px solid var(--color-line); border-radius: 8px;
     background: var(--color-bg); overflow: hidden; transition: border-color .2s, transform .25s var(--ease), box-shadow .25s;
   }
   .corte:hover { border-color: var(--color-line-2); transform: translateY(-4px); box-shadow: 0 18px 40px rgba(0, 0, 0, .55), 0 0 0 1px rgba(215, 38, 46, .35); }
-  .fotos { position: relative; aspect-ratio: 4 / 5; background: var(--color-surface); overflow: hidden; }
+  .fotos {
+    position: relative; display: block; width: 100%; aspect-ratio: 4 / 5; padding: 0; border: 0;
+    background: var(--color-surface); overflow: hidden; cursor: zoom-in;
+  }
+  .fotos:focus-visible { outline: 2px solid var(--color-red-text); outline-offset: -2px; }
+  .lupa {
+    position: absolute; right: 10px; top: 10px; width: 34px; height: 34px; display: grid; place-items: center;
+    border-radius: 4px; background: rgba(10, 10, 12, .7); opacity: 0; transition: opacity .2s;
+  }
+  .lupa svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 2; }
+  .corte:hover .lupa, .fotos:focus-visible .lupa { opacity: 1; }
+  @media (hover: none) { .lupa { opacity: 1; } }
   .fotos :global(.foto) {
     position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-    opacity: 0; transform: scale(1.03); transition: opacity .35s var(--ease), transform .5s var(--ease);
+    opacity: 0; transform: scale(1.03);
+    /* Blanco y negro para que todas las fotos se vean uniformes; al señalar la tarjeta recuperan el color.
+       Para dejarlas a color, quita el filtro. */
+    filter: grayscale(1) contrast(1.08);
+    transition: opacity .35s var(--ease), transform .5s var(--ease), filter .45s var(--ease);
   }
+  .corte:hover :global(.foto), .corte:focus-within :global(.foto) { filter: grayscale(0) contrast(1); }
   .fotos :global(.foto.activa) { opacity: 1; transform: none; }
   .info { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 16px; }
   h3 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 22px; letter-spacing: .02em; text-transform: uppercase; line-height: 1.05; }
-  .vistas { margin-top: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .vistas { margin-top: auto; display: flex; gap: 6px; }
+  .vistas button { flex: 1; }
   .vistas button {
     min-height: 40px; padding: 0 4px; border: 1px solid var(--color-line-2); border-radius: 4px;
     background: transparent; color: var(--color-body); font-size: 12px; font-weight: 700; letter-spacing: .06em;
@@ -141,25 +290,66 @@ const cortes = await Promise.all(
   }
   .vistas button:hover:not(:disabled) { border-color: var(--color-soft); color: var(--color-fg); }
   .vistas button[aria-pressed="true"] { background: var(--color-red); border-color: var(--color-red); color: #fff; }
-  .vistas button:disabled { color: #55555c; border-color: #1f1f23; border-style: dashed; cursor: not-allowed; }
+
+  /* Vista ampliada (en color, a diferencia de las tarjetas). */
+  .visor {
+    width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; padding: 0; border: 0;
+    background: transparent; color: var(--color-fg); overscroll-behavior: contain;
+  }
+  .visor::backdrop { background: rgba(5, 5, 7, .92); backdrop-filter: blur(6px); }
+  .visor[open] { animation: v-entra .25s var(--ease); }
+  @keyframes v-entra { from { opacity: 0; transform: scale(.97); } }
+  :global(html:has(.visor[open])) { overflow: hidden; }
+  .v-marco {
+    height: 100%; display: grid; grid-template-columns: 64px minmax(0, auto) 64px; justify-content: center;
+    align-items: center; gap: 16px; padding: 24px;
+  }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  #visorImg {
+    display: block; max-width: min(90vw, 100%); max-height: calc(100vh - 170px); max-height: calc(100dvh - 170px);
+    width: auto; height: auto; margin: 0 auto; border-radius: 8px; background: var(--color-surface);
+    touch-action: pan-y; user-select: none; -webkit-user-drag: none;
+  }
+  figcaption { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+  .v-num { margin: 0 0 2px; font-size: 12px; font-weight: 700; letter-spacing: .12em; color: var(--color-red-text); }
+  figcaption h3 { margin: 0; font-family: var(--font-display); font-size: 28px; font-weight: 400; text-transform: uppercase; letter-spacing: .02em; }
+  .v-vistas { display: flex; gap: 6px; }
+  .v-vistas :global(button) {
+    min-width: 64px; padding: 9px 12px; border: 1px solid var(--color-line-2); border-radius: 4px; background: transparent;
+    color: var(--color-body); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
+  }
+  .v-vistas :global(button:hover) { border-color: var(--color-soft); color: var(--color-fg); }
+  .v-vistas :global(button[aria-pressed="true"]) { background: var(--color-red); border-color: var(--color-red); color: #fff; }
+  .v-flecha, .v-cerrar {
+    display: grid; place-items: center; border: 1px solid var(--color-line-2); border-radius: 4px;
+    background: rgba(10, 10, 12, .6); color: var(--color-fg); cursor: pointer; transition: border-color .15s, background .15s;
+  }
+  .v-flecha { width: 56px; height: 56px; font-size: 30px; line-height: 1; }
+  .v-flecha:hover, .v-cerrar:hover { border-color: var(--color-red); background: var(--color-red-dim); }
+  .v-cerrar { position: fixed; top: 16px; right: 16px; width: 48px; height: 48px; z-index: 1; }
+  .v-cerrar svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; }
 
   section :global(.bt-trab) { width: clamp(200px, 20vw, 300px); left: -2%; top: 4%; transform: rotate(-22deg); }
 
   @media (max-width: 1080px) {
-    .cortes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cortes > .corte { flex-basis: calc((100% - 32px) / 2.4); }
   }
   @media (max-width: 900px) {
     section :global(.bt-trab) { width: 46vw; left: auto; right: -10%; top: 2%; }
   }
-  /* En celular los cortes se deslizan de lado en lugar de apilarse. */
+  /* En celular se desliza con el dedo, a todo el ancho de la pantalla. */
   @media (max-width: 640px) {
-    .cortes {
-      display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px;
-      margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); scroll-padding-inline: var(--gutter);
-      padding-bottom: 8px; scrollbar-width: none;
-    }
-    .cortes::-webkit-scrollbar { display: none; }
-    .corte { flex: 0 0 82%; scroll-snap-align: start; }
+    .car-nav { display: none; }
+    .cortes { margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); scroll-padding-inline: var(--gutter); gap: 12px; }
+    .cortes > .corte { flex-basis: 82%; }
     .corte:hover { transform: none; }
+    /* En celular la foto ocupa todo el ancho; las flechas bajan junto al pie. */
+    .v-marco { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr auto; padding: 72px 0 20px; gap: 12px; }
+    figure { grid-column: 1 / -1; grid-row: 1; align-self: center; }
+    #visorImg { max-width: 100%; max-height: calc(100dvh - 230px); border-radius: 0; }
+    figcaption { padding-inline: var(--gutter); }
+    .v-flecha { grid-row: 2; width: auto; height: 48px; }
+    .v-ant { margin-left: var(--gutter); }
+    .v-sig { margin-right: var(--gutter); }
   }
 </style>

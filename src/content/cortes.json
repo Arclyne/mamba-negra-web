@@ -1,28 +1,44 @@
 [
   {
-    "id": "pompadour-clasico",
-    "nombre": "Pompadour clásico",
+    "id": "wolf-cut",
+    "nombre": "Wolf cut",
     "vistas": {
-      "frente": "cortes/pompadour-frente.webp",
-      "izquierdo": "cortes/pompadour-izquierdo.webp"
+      "frente": "cortes/wolf-cut-frente.jpg",
+      "izquierdo": "cortes/wolf-cut-izquierdo.jpg",
+      "derecho": "cortes/wolf-cut-derecho.jpg"
     }
   },
   {
-    "id": "crop-texturizado",
-    "nombre": "Crop texturizado con fade",
+    "id": "modern-mullet",
+    "nombre": "Modern Mullet",
+    "vistas": { "izquierdo": "cortes/modern-mullet-izquierdo.jpg" }
+  },
+  {
+    "id": "mid-fade-drop-v",
+    "nombre": "Mid Fade con drop en V",
+    "vistas": { "atras": "cortes/mid-fade-v-atras.jpg" }
+  },
+  {
+    "id": "middle-part",
+    "nombre": "Middle part",
+    "vistas": { "izquierdo": "cortes/middle-part-izquierdo.jpg" }
+  },
+  {
+    "id": "buzz-cut",
+    "nombre": "Buzz cut",
+    "vistas": { "izquierdo": "cortes/buzz-cut-izquierdo.jpg" }
+  },
+  {
+    "id": "comb-over",
+    "nombre": "Comb over",
     "vistas": {
-      "izquierdo": "cortes/crop-izquierdo.webp",
-      "derecho": "cortes/crop-derecho.webp",
-      "atras": "cortes/crop-atras.webp"
+      "frente": "cortes/comb-over-frente.jpg",
+      "izquierdo": "cortes/comb-over-izquierdo.jpg"
     }
   },
   {
-    "id": "peinado-rayo",
-    "nombre": "Peinado hacia atrás con rayo",
-    "vistas": {
-      "frente": "cortes/rayo-frente.webp",
-      "derecho": "cortes/rayo-derecho.webp",
-      "atras": "cortes/rayo-atras.webp"
-    }
+    "id": "mohawk-diseno",
+    "nombre": "Mohawk con diseño",
+    "vistas": { "izquierdo": "cortes/mohawk-diseno-izquierdo.jpg" }
   }
 ]

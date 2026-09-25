@@ -36,7 +36,7 @@ Cada servicio lleva `id`, `nombre`, `descripcion`, `precio` (MXN), `duracion` (6
 ### Cortes
 
 Cada corte tiene un nombre y una foto por perspectiva: `frente`, `izquierdo`, `derecho` y `atras`.
-Las que falten aparecen deshabilitadas en su tarjeta. Para agregar un corte:
+Solo se muestran los botones de las perspectivas que tienen foto (ninguno si hay una sola). Los cortes van en un carrusel, así que puedes agregar los que quieras sin que la sección crezca. Para agregar un corte:
 
 1. Copia sus fotos a `src/assets/galeria/cortes/` (JPG, PNG o WebP, verticales 4:5 de preferencia).
 2. Agrega una entrada a `cortes.json`:
@@ -74,7 +74,17 @@ Para activar el calendario:
    desactivar por completo la cancelación o el reagendado, no limitarlos por tiempo. Por eso el sitio lo pide
    («avísanos con 1 h de anticipación») en lugar de prometer que se bloquea.
 
-El calendario (un iframe de Cal.com) solo se descarga cuando alguien llega a la sección de reservas o elige un servicio.
+La reserva tiene tres pasos:
+1. **Servicio:** las tarjetas de «Lo que hacemos».
+2. **Día y hora:** calendario propio con el diseño del sitio. Los horarios salen de la API pública de Cal.com
+   (`src/scripts/horarios.ts`, sin clave): ya respetan el horario, la comida, el aviso mínimo, las citas
+   existentes y lo anotado en el Google Calendar conectado.
+3. **Datos:** formulario propio (nombre, correo, WhatsApp opcional y notas) que crea la reserva con la API
+   pública de Cal.com (`src/scripts/reserva.ts`, sin clave). Cal.com guarda la cita, la agrega al Google
+   Calendar conectado y manda confirmación, recordatorio y enlaces para cambiar o cancelar.
+   Requiere que los servicios **no** tengan activada la verificación de correo en Cal.com.
+
+Si la API de horarios falla, el sitio muestra el calendario completo de Cal.com como respaldo.
 Los botones «Reservar» de cada tarjeta y los enlaces `/?servicio=<id>#reservar` abren la reserva con ese servicio ya elegido.
 
 ## Despliegue (Netlify)

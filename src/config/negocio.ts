@@ -61,7 +61,7 @@ export const negocio = {
   privacidad: {
     responsable: 'Jesús Alarcón Mendoza',
     correo: 'lamambanegra488@gmail.com',
-    actualizado: '24 de septiembre de 2026',
+    actualizado: '25 de septiembre de 2026',
   },
 } as const;
 
