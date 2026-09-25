@@ -86,7 +86,8 @@ const conCal = usuario.trim() !== '';
     }
     paso1.hidden = true;
     book.hidden = false;
-    document.getElementById('servicios')!.scrollIntoView({ behavior: suave(), block: 'start' });
+    // Lleva al panel del calendario (no al inicio de la sección) para ver el calendario y las horas completos.
+    book.scrollIntoView({ behavior: suave(), block: 'start' });
     $('paso2-t')!.focus({ preventScroll: true });
   }
 
@@ -119,7 +120,11 @@ const conCal = usuario.trim() !== '';
 </script>
 
 <style>
-  .book { border: 1px solid var(--color-line-2); border-radius: 10px; background: var(--color-bg); padding: 28px; }
+  .book {
+    border: 1px solid var(--color-line-2); border-radius: 10px; background: var(--color-bg); padding: 28px;
+    /* Con el scroll-padding global (96 px), el panel queda ~24 px debajo del encabezado compacto. */
+    scroll-margin-top: -8px;
+  }
   .book:not([hidden]) { animation: pasoIn .35s var(--ease) both; }
   @keyframes pasoIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   .step {
