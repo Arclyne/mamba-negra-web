@@ -30,32 +30,14 @@ const [manana, tarde] = negocio.horario.bloques;
       <p class="phone">WhatsApp: {negocio.whatsapp.visible} · Instagram: @{negocio.instagram.usuario}</p>
     </div>
 
-    <!-- RF-02: el mapa de Google solo se carga si la persona lo pide (rendimiento y privacidad). -->
-    <div class="map" id="mapa" data-src={negocio.mapsEmbedUrl}>
-      <div class="map-pin">
-        <div class="pin"><svg width="26" height="26" viewBox="0 0 24 24" stroke="#fff" aria-hidden="true"><use href="#i-pin" /></svg></div>
-        <strong>{negocio.nombre}</strong>
-        <span>{d.calle.replace('C. ', '')}, {d.colonia} de {d.ciudad}</span>
-        <button type="button" class="btn btn-ghost" id="mapBtn">Mostrar mapa</button>
-      </div>
+    <!-- RF-02: el navegador descarga el mapa solo cuando la sección se acerca a la pantalla (loading="lazy"). -->
+    <div class="map">
+      <iframe class="map-frame" src={negocio.mapsEmbedUrl} title="Mapa de ubicación de La Mamba Negra en Coatepec"
+        loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       <a href={negocio.mapsUrl} target="_blank" rel="noopener"><span>Cómo llegar con Google Maps</span><span aria-hidden="true">→</span></a>
     </div>
   </div>
 </section>
-
-<script>
-  const mapa = document.getElementById('mapa')!;
-  document.getElementById('mapBtn')!.addEventListener('click', () => {
-    const iframe = document.createElement('iframe');
-    iframe.src = mapa.dataset.src!;
-    iframe.title = 'Mapa de ubicación de La Mamba Negra en Coatepec';
-    iframe.loading = 'lazy';
-    iframe.referrerPolicy = 'no-referrer-when-downgrade';
-    iframe.className = 'map-frame';
-    mapa.querySelector('.map-pin')!.replaceWith(iframe);
-    iframe.focus();
-  });
-</script>
 
 <style>
   .contact { display: grid; grid-template-columns: 5fr 1fr 6fr; gap: 24px; }
@@ -78,15 +60,7 @@ const [manana, tarde] = negocio.horario.bloques;
       var(--color-bg-2);
     display: flex; flex-direction: column; min-height: 460px; overflow: hidden;
   }
-  .map-pin { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 24px; }
-  .pin {
-    width: 56px; height: 56px; border-radius: 50%; background: var(--color-red);
-    display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 10px rgba(215, 38, 46, .18);
-  }
-  .map-pin strong { font-family: var(--font-display); font-weight: 400; font-size: 28px; letter-spacing: .04em; }
-  .map-pin span { color: var(--color-body); font-size: 15px; }
-  .map-pin .btn { margin-top: 8px; min-height: 44px; font-size: 14px; background: rgba(0, 0, 0, .6); }
-  .map :global(.map-frame) { flex: 1; width: 100%; border: 0; filter: grayscale(.35) invert(.9) hue-rotate(180deg); }
+  .map-frame { flex: 1; width: 100%; border: 0; filter: grayscale(.35) invert(.9) hue-rotate(180deg); }
   .map > a {
     display: flex; justify-content: space-between; align-items: center; padding: 20px 24px;
     border-top: 1px solid var(--color-line-2); background: var(--color-bg); font-weight: 600;
