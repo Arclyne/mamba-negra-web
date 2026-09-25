@@ -10,7 +10,7 @@ import { negocio } from '../config/negocio';
   <div class="wrap">
     <div class="hero-txt">
       <p class="eyebrow">Barbería premium · Centro de {negocio.direccion.ciudad}</p>
-      <h1 class="display"><span class="ln">La Mamba</span><br /><span class="ln red">Negra</span></h1>
+      <h1 class="display"><span class="ln">La</span><br /><span class="ln">Mamba</span><br /><span class="ln red">Negra</span></h1>
       <p class="lead">Donde el estilo clásico se fusiona con la cultura contemporánea. Cada corte, una obra maestra.</p>
       <div class="cta">
         <a class="btn btn-red" href="#reservar">Reservar cita</a>
@@ -81,10 +81,11 @@ import { negocio } from '../config/negocio';
     display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 32px; align-items: center;
     padding-block: clamp(40px, 7vw, 96px);
   }
-  /* El título mide en proporción al ancho de su columna (cqw), así "LA MAMBA" siempre cabe en una línea. */
+  /* Título en tres líneas, como el prototipo. Mide en proporción al ancho de su columna (cqw):
+     "MAMBA" ocupa 2.94 veces el tamaño de letra, así que 32cqw siempre cabe, con tope de 152 px. */
   .hero-txt { container-type: inline-size; }
   h1 {
-    font-family: var(--font-display); font-size: min(150px, 23cqw); line-height: .92; letter-spacing: .005em;
+    font-family: var(--font-display); font-size: min(152px, 32cqw); line-height: .9; letter-spacing: .005em;
     text-transform: uppercase; margin: 26px 0 28px;
   }
   h1 .ln { white-space: nowrap; }
@@ -101,7 +102,8 @@ import { negocio } from '../config/negocio';
   .eyebrow::before { transform-origin: left; animation: lineIn .6s var(--ease) .35s both; }
   h1 .ln { display: inline-block; }
   h1 .ln:nth-of-type(1) { animation-delay: .15s; }
-  h1 .ln:nth-of-type(2) { animation-delay: .28s; }
+  h1 .ln:nth-of-type(2) { animation-delay: .24s; }
+  h1 .ln:nth-of-type(3) { animation-delay: .33s; }
   .lead { animation-delay: .42s; }
   .cta { animation-delay: .54s; }
   .facts { animation-delay: .66s; }
@@ -181,6 +183,7 @@ import { negocio } from '../config/negocio';
     .hero :global(.bt-hero) { width: 88vw; left: -20%; bottom: auto; top: 30%; }
   }
   @media (max-width: 640px) {
+    h1 { font-size: min(96px, 32cqw); }
     .cta .btn { flex: 1; padding: 0 12px; }
   }
   @media (prefers-reduced-motion: reduce) {
