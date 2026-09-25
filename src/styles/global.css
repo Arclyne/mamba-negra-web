@@ -29,13 +29,14 @@
 :root {
   color-scheme: dark;
   --gutter: clamp(16px, 5vw, 96px);
+  --sec-pad: clamp(64px, 10vw, 128px);
   --maxw: 1280px;
   --ease: var(--ease-out-soft);
 }
 
 @layer base {
   [hidden]:not([hidden="until-found" i]) { display: none !important; }
-  html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+  html { scroll-behavior: smooth; scroll-padding-top: 96px; }
   body {
     background: var(--color-bg);
     color: var(--color-fg);
@@ -85,7 +86,10 @@
   .ico { width: 18px; height: 18px; flex-shrink: 0; stroke: currentColor; }
 
   /* Secciones */
-  .section { position: relative; overflow: hidden; padding-block: clamp(64px, 10vw, 128px); }
+  .section { position: relative; overflow: hidden; padding-block: var(--sec-pad); }
+  /* Los enlaces del menú llevan al contenido (título de la sección) y no al borde superior,
+     que tiene un margen interno grande: así el título queda justo debajo del encabezado. */
+  .section[id] { scroll-margin-top: calc(-1 * var(--sec-pad)); }
   .section > .wrap { position: relative; z-index: 1; }
   .section.alt { background: var(--color-bg-2); border-block: 1px solid var(--color-line); }
   .sec-head {

@@ -147,7 +147,7 @@ const sinJs = (id: string, nombre: string, precio: number, calEvento?: string) =
 </script>
 
 <style>
-  .ancla { position: absolute; top: 0; }
+  .ancla { position: absolute; top: 0; scroll-margin-top: calc(-1 * var(--sec-pad)); }
   .intro { margin: 16px 0 0; max-width: 30em; color: var(--color-body); }
   /* En el paso 2 las pestañas se ocultan, pero conservan su lugar para que el título no salte. */
   .sec-head:has(~ #paso1[hidden]) .tabs { visibility: hidden; }
