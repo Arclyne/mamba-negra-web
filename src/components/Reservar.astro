@@ -2,9 +2,10 @@
 // Pasos 2 y 3 de la reserva. Vive dentro de la sección de servicios (Servicios.astro), cuyas tarjetas son el paso 1.
 //  · Paso 2 (día y hora): calendario propio con el diseño del sitio. Los horarios son los reales,
 //    de la API pública de Cal.com (src/scripts/horarios.ts).
-//  · Paso 3 (tus datos): el formulario de Cal.com, abierto ya en la hora elegida. Cal.com guarda la cita,
-//    verifica el correo y manda confirmación y recordatorio; el sitio no guarda datos personales.
-//  · Si la API de horarios falla, se muestra el calendario de Cal.com completo como respaldo.
+//  · Paso 3 (tus datos): formulario propio que crea la reserva con la API pública de Cal.com
+//    (src/scripts/reserva.ts). Cal.com guarda la cita y manda confirmación, recordatorio y enlaces
+//    para cambiar o cancelar; el sitio no guarda datos personales.
+//  · Si la API falla, se muestra el calendario completo de Cal.com como respaldo.
 import { negocio, waLink } from '../config/negocio';
 
 // Con la cuenta de Cal.com del negocio configurada se reserva en línea (RF-04).
@@ -71,7 +72,53 @@ const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
         </div>
       </div>
 
-      <!-- Paso 3: formulario de Cal.com (o su calendario completo, como respaldo) -->
+      <!-- Paso 3: tus datos -->
+      <form class="datos" id="datos" hidden novalidate>
+        <div class="d-res" aria-live="polite">
+          <strong id="dSvc"></strong>
+          <span id="dCuando"></span>
+          <span><span id="dDur"></span> · <span class="p" id="dPrecio"></span></span>
+        </div>
+        <div class="campos">
+          <label class="campo">
+            <span>Nombre <b aria-hidden="true">*</b></span>
+            <input id="fNombre" name="nombre" type="text" autocomplete="name" required maxlength="80" />
+          </label>
+          <label class="campo">
+            <span>Correo electrónico <b aria-hidden="true">*</b></span>
+            <input id="fCorreo" name="correo" type="email" autocomplete="email" inputmode="email" required maxlength="120" />
+            <small>Ahí te llegan la confirmación, el recordatorio y los enlaces para cambiar o cancelar.</small>
+          </label>
+          <label class="campo">
+            <span>WhatsApp <em>(opcional)</em></span>
+            <span class="tel"><span class="lada" aria-hidden="true">+52</span>
+              <input id="fTel" name="telefono" type="tel" autocomplete="tel-national" inputmode="numeric" maxlength="14" placeholder="228 123 4567" aria-describedby="telAyuda" />
+            </span>
+            <small id="telAyuda">10 dígitos. Solo para avisarte si hay algún cambio.</small>
+          </label>
+          <label class="campo">
+            <span>Notas para el barbero <em>(opcional)</em></span>
+            <textarea id="fNotas" name="notas" rows="3" maxlength="500" placeholder="Ej.: quiero un fade bajo, traigo foto de referencia…"></textarea>
+          </label>
+          <!-- Trampa para bots: invisible para las personas. -->
+          <input class="trampa" id="fSitio" name="sitio" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" />
+        </div>
+        <p class="error" id="fError" role="alert" hidden></p>
+        <p class="legal">Al confirmar aceptas nuestro <a href="/aviso-de-privacidad" target="_blank">aviso de privacidad</a>. La reserva la gestiona Cal.com.</p>
+        <button type="submit" class="btn btn-red confirmar" id="confirmar">Confirmar reserva</button>
+      </form>
+
+      <!-- Reserva confirmada -->
+      <div class="exito" id="exito" hidden tabindex="-1">
+        <div class="check" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg></div>
+        <h4 id="eTitulo">¡Listo, tu cita quedó reservada!</h4>
+        <p class="e-cuando" id="eCuando"></p>
+        <p id="eCorreo"></p>
+        <p class="e-dir">{negocio.direccion.calle}, {negocio.direccion.colonia}, {negocio.direccion.ciudad}</p>
+        <button type="button" class="btn btn-red" id="otra">Hacer otra reserva</button>
+      </div>
+
+      <!-- Respaldo: calendario completo de Cal.com si la API no responde -->
       <div class="cal-embed" id="calEmbed" hidden></div>
     </>
   ) : (
@@ -88,6 +135,7 @@ const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 <script>
   import { montarCalendario } from '../scripts/calcom';
   import { horariosDelMes, olvidar, hoy, mesSiguiente, horaLocal, type Horarios } from '../scripts/horarios';
+  import { crearReserva } from '../scripts/reserva';
 
   const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
   const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
@@ -189,72 +237,116 @@ const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
     ($('continuar') as HTMLButtonElement).disabled = !(dia && hora);
   }
 
-  // ————— Paso 3: formulario de Cal.com —————
+  // ————— Paso 3: tus datos —————
 
-  function vista(paso: 'agenda' | 'form') {
+  type Paso = 'agenda' | 'datos' | 'exito' | 'cal';
+  const TITULOS: Record<Paso, string> = { agenda: 'Elige día y hora', datos: 'Tus datos', exito: 'Reserva confirmada', cal: 'Elige día y hora' };
+
+  function vista(paso: Paso) {
     agenda!.hidden = paso !== 'agenda';
-    embed!.hidden = paso !== 'form';
-    $('reiniciar').hidden = paso !== 'form';
-    $('paso2-t').textContent = paso === 'agenda' ? 'Elige día y hora' : 'Tus datos';
-    if (paso === 'agenda') embed!.replaceChildren();
-    modoReinicio(false);
+    $('datos').hidden = paso !== 'datos';
+    $('exito').hidden = paso !== 'exito';
+    embed!.hidden = paso !== 'cal';
+    if (paso !== 'cal') embed!.replaceChildren();
+    $('reiniciar').hidden = paso !== 'datos';
+    $('paso2-t').textContent = TITULOS[paso];
   }
 
-  /** Tras una reserva confirmada el botón invita a hacer otra; si no, regresa a elegir otro horario. */
-  function modoReinicio(reservado: boolean) {
-    const b = $('reiniciar');
-    $('reiniciarTxt').textContent = reservado ? 'Hacer otra reserva' : 'Cambiar horario';
-    b.classList.toggle('btn-red', reservado);
-    b.classList.toggle('btn-ghost', !reservado);
-  }
+  const cuando = () => (dia && hora ? `${mayus(titulo(dia))}, ${horaLocal(hora)} h` : '');
 
-  /** Monta Cal.com: con `slot`, directo en el formulario de esa hora; sin él, su calendario completo. */
-  function montarCal(slot?: { dia: string; iso: string }) {
+  function continuar() {
+    if (!dia || !hora) return;
     const d = datos(actual)!;
-    const servicio = actual;
-    embed!.replaceChildren();
+    $('dSvc').textContent = d.nombre!;
+    $('dCuando').textContent = cuando();
+    $('dDur').textContent = d.duracion!;
+    $('dPrecio').textContent = `$${d.precio} MXN`;
+    $('fError').hidden = true;
+    vista('datos');
+    book.scrollIntoView({ behavior: suave(), block: 'start' });
+    ($('fNombre') as HTMLInputElement).focus({ preventScroll: true });
+  }
+
+  const soloDigitos = (v: string) => v.replace(/\D/g, '').replace(/^52(?=\d{10}$)/, '');
+
+  function mostrarError(msg: string, campo?: string) {
+    const e = $('fError');
+    e.textContent = msg;
+    e.hidden = false;
+    if (campo) ($(campo) as HTMLInputElement).focus();
+  }
+
+  async function enviar(ev: SubmitEvent) {
+    ev.preventDefault();
+    if (!dia || !hora) return;
+    const nombre = ($('fNombre') as HTMLInputElement).value.trim();
+    const correo = ($('fCorreo') as HTMLInputElement).value.trim();
+    const tel = soloDigitos(($('fTel') as HTMLInputElement).value);
+    const notas = ($('fNotas') as HTMLTextAreaElement).value.trim();
+    if (nombre.length < 2) return mostrarError('Escribe tu nombre.', 'fNombre');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(correo)) return mostrarError('Revisa tu correo electrónico: ahí te llega la confirmación.', 'fCorreo');
+    if (tel && tel.length !== 10) return mostrarError('El WhatsApp debe tener 10 dígitos (o déjalo vacío).', 'fTel');
+
+    const d = datos(actual)!;
+    const boton = $('confirmar') as HTMLButtonElement;
+    boton.disabled = true;
+    boton.textContent = 'Confirmando…';
+    $('fError').hidden = true;
+
+    // Si un bot llenó el campo trampa, se finge el éxito sin reservar nada.
+    const bot = ($('fSitio') as HTMLInputElement).value !== '';
+    const r = bot ? { ok: true as const } : await crearReserva({ evento: d.evento!, inicio: hora, nombre, correo, telefono: tel || undefined, notas: notas || undefined });
+
+    boton.disabled = false;
+    boton.textContent = 'Confirmar reserva';
+    if (r.ok) {
+      olvidar(d.evento!); // esa hora ya no está libre
+      $('eTitulo').textContent = `¡Listo, ${nombre.split(' ')[0]}! Tu cita quedó reservada`;
+      $('eCuando').textContent = `${d.nombre} · ${cuando()} · ${d.duracion} · $${d.precio} MXN`;
+      $('eCorreo').textContent = `Te enviamos la confirmación a ${correo}. Desde ese correo puedes cambiar o cancelar tu cita.`;
+      ($('datos') as HTMLFormElement).reset();
+      vista('exito');
+      book.scrollIntoView({ behavior: suave(), block: 'start' });
+      $('exito').focus({ preventScroll: true });
+      return;
+    }
+    if (r.motivo === 'ocupada') {
+      olvidar(d.evento!);
+      hora = null;
+      vista('agenda');
+      await cargarMes(mes, { elegirPrimero: false });
+      $('horasAviso').textContent = 'Esa hora se acaba de ocupar. Elige otra, por favor.';
+      return;
+    }
+    const mensajes = {
+      limite: 'Ya tienes el máximo de citas activas con este correo. Si necesitas otra, escríbenos por WhatsApp.',
+      datos: 'Cal.com no aceptó los datos. Revisa tu nombre y correo, o escríbenos por WhatsApp.',
+      red: 'No pudimos conectar para confirmar tu reserva. Revisa tu internet e intenta de nuevo.',
+      otro: 'No pudimos confirmar tu reserva. Intenta de nuevo o escríbenos por WhatsApp.',
+    } as const;
+    mostrarError(mensajes[r.motivo]);
+  }
+
+  /** Respaldo: si la API de horarios no responde, el calendario completo de Cal.com. */
+  function respaldo() {
+    const d = datos(actual)!;
+    vista('cal');
     const aviso = document.createElement('p');
     aviso.className = 'cal-loading';
-    aviso.textContent = slot ? 'Abriendo el formulario…' : 'Cargando horarios disponibles…';
+    aviso.textContent = 'Cargando horarios disponibles…';
     const el = document.createElement('div');
     el.className = 'cal-frame';
     embed!.append(aviso, el);
-    montarCalendario(el, {
-      origin,
-      calLink: d.evento!,
-      // Cada montaje usa su propio namespace de Cal.com para que un calendario nuevo no herede el anterior.
-      namespace: `svc_${servicio.replace(/-/g, '_')}_${++montajes}`,
-      hora: slot,
-      alReservar: () => {
-        olvidar(d.evento!); // la hora reservada ya no está libre
-        if (actual === servicio && el.isConnected) modoReinicio(true);
-      },
-    });
+    montarCalendario(el, { origin, calLink: d.evento!, namespace: `svc_${actual.replace(/-/g, '_')}_${++montajes}` });
     // Cal.com inserta su iframe: se quita el aviso y se le pone un título en español ("Book a call" por defecto).
     const listo = () => {
       const iframe = el.querySelector('iframe');
       if (!iframe) return false;
-      iframe.title = slot ? `Formulario de reserva: ${d.nombre}` : `Calendario para reservar: ${d.nombre}`;
+      iframe.title = `Calendario para reservar: ${d.nombre}`;
       aviso.remove();
       return true;
     };
     if (!listo()) new MutationObserver((_, obs) => { if (listo()) obs.disconnect(); }).observe(el, { childList: true, subtree: true });
-  }
-
-  function continuar() {
-    if (!dia || !hora) return;
-    vista('form');
-    montarCal({ dia, iso: hora });
-    book.scrollIntoView({ behavior: suave(), block: 'start' });
-    $('paso2-t').focus({ preventScroll: true });
-  }
-
-  /** Si la API de horarios no responde, se usa el calendario completo de Cal.com. */
-  function respaldo() {
-    vista('form');
-    $('reiniciar').hidden = true;
-    $('paso2-t').textContent = 'Elige día y hora';
-    montarCal();
   }
 
   // ————— Navegación entre pasos —————
@@ -292,12 +384,20 @@ const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
     window.dispatchEvent(new CustomEvent('mamba:cambiar', { detail: actual }));
   }
 
-  /** "Cambiar horario" (o "Hacer otra reserva" tras confirmar): de vuelta a la agenda del mismo servicio. */
+  /** "Cambiar horario": de vuelta a la agenda, con el día y la hora que tenía. */
   function reiniciar() {
-    const reservado = $('reiniciarTxt').textContent === 'Hacer otra reserva';
     vista('agenda');
-    if (reservado) { dia = null; hora = null; }
-    cargarMes(mes || hoy().slice(0, 7), { elegirPrimero: reservado });
+    pintarMes(false);
+    pintarHoras();
+    $('paso2-t').focus();
+  }
+
+  /** "Hacer otra reserva": agenda del mismo servicio con horarios actualizados. */
+  function otra() {
+    dia = null;
+    hora = null;
+    vista('agenda');
+    cargarMes(hoy().slice(0, 7));
     $('paso2-t').focus();
   }
 
@@ -307,6 +407,8 @@ const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
   if (conCal) {
     $('reiniciar').addEventListener('click', reiniciar);
+    $('otra').addEventListener('click', otra);
+    ($('datos') as HTMLFormElement).addEventListener('submit', enviar);
     $('continuar').addEventListener('click', continuar);
     $('mesAnt').addEventListener('click', () => { dia = null; hora = null; cargarMes(mesSiguiente(mes, -1)); });
     $('mesSig').addEventListener('click', () => { dia = null; hora = null; cargarMes(mesSiguiente(mes)); });
@@ -433,7 +535,63 @@ const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   .continuar { width: 100%; margin-top: 12px; }
   .continuar:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
 
-  /* ————— Paso 3: Cal.com ————— */
+  /* ————— Paso 3: tus datos ————— */
+  .datos { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 28px; margin-top: 24px; align-items: start; }
+  .datos:not([hidden]), .exito:not([hidden]) { animation: pasoIn .35s var(--ease) both; }
+  .d-res {
+    grid-row: span 4; padding: 18px; border-radius: 8px; background: var(--color-surface); border: 1px solid var(--color-line-2);
+    display: flex; flex-direction: column; gap: 4px; font-size: 15px; color: var(--color-body);
+  }
+  .d-res strong { font-family: var(--font-display); font-weight: 400; font-size: 26px; letter-spacing: .02em; text-transform: uppercase; line-height: 1.05; color: var(--color-fg); }
+  .d-res .p { color: var(--color-fg); font-weight: 600; }
+  .campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 18px; }
+  .campo { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; color: var(--color-fg); }
+  .campo:nth-child(n+3) { grid-column: 1 / -1; }
+  .campo b { color: var(--color-red-text); font-weight: 700; }
+  .campo em { font-style: normal; font-weight: 500; color: var(--color-muted); }
+  .campo small { font-size: 13px; font-weight: 500; color: var(--color-muted); }
+  .campo input, .campo textarea {
+    width: 100%; min-height: 48px; padding: 12px 14px; border-radius: 6px; border: 1px solid var(--color-line-2);
+    background: var(--color-bg-2); color: var(--color-fg); font: inherit; font-size: 16px; font-weight: 500;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .campo textarea { resize: vertical; min-height: 88px; }
+  .campo input::placeholder, .campo textarea::placeholder { color: #6a6a72; }
+  .campo input:focus, .campo textarea:focus { outline: none; border-color: var(--color-red); box-shadow: 0 0 0 3px rgba(215, 38, 46, .25); }
+  .tel { display: flex; }
+  .tel .lada {
+    display: flex; align-items: center; padding: 0 12px; border: 1px solid var(--color-line-2); border-right: 0;
+    border-radius: 6px 0 0 6px; background: var(--color-surface); color: var(--color-body); font-weight: 600;
+  }
+  .tel input { border-radius: 0 6px 6px 0; }
+  .trampa { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+  .error {
+    margin: 0; padding: 12px 14px; border-radius: 6px; border: 1px solid var(--color-red); background: var(--color-red-dim);
+    color: #ffd9d6; font-size: 15px; font-weight: 500;
+  }
+  .legal { margin: 0; font-size: 13px; color: var(--color-muted); }
+  .legal a { color: var(--color-body); text-decoration: underline; text-underline-offset: 3px; }
+  .confirmar { width: 100%; }
+  .confirmar:disabled { opacity: .6; cursor: progress; transform: none; box-shadow: none; }
+  .datos > :not(.d-res) { grid-column: 2; }
+
+  /* Reserva confirmada */
+  .exito {
+    margin: 28px auto 4px; max-width: 520px; text-align: center; outline: none;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .check {
+    width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    background: var(--color-red); color: #fff; box-shadow: 0 0 0 10px rgba(215, 38, 46, .18); margin-bottom: 8px;
+    animation: pop .5s var(--ease-pop) .1s both;
+  }
+  .exito h4 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(28px, 4vw, 38px); text-transform: uppercase; line-height: 1.05; }
+  .exito p { margin: 0; color: var(--color-body); font-size: 16px; }
+  .exito .e-cuando { color: var(--color-fg); font-weight: 600; font-size: 17px; }
+  .exito .e-dir { font-size: 14px; color: var(--color-muted); }
+  .exito .btn { margin-top: 14px; }
+
+  /* ————— Respaldo: Cal.com ————— */
   .cal-embed { position: relative; min-height: 460px; margin-top: 20px; }
   .cal-embed :global(.cal-frame) { width: 100%; }
   .cal-embed :global(.cal-loading) {
@@ -447,6 +605,9 @@ const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   .wa-box .hours-note { font-size: 15px; color: var(--color-soft); }
 
   @media (max-width: 900px) {
+    .datos { grid-template-columns: 1fr; gap: 16px; }
+    .d-res { grid-row: auto; }
+    .datos > :not(.d-res) { grid-column: auto; }
     .agenda { grid-template-columns: 1fr; }
     .agenda > div + div { border-left: 0; border-top: 1px solid var(--color-line); }
   }
@@ -462,5 +623,7 @@ const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
     .days, .dow { gap: 4px; }
     .days :global(button) { height: 44px; font-size: 15px; }
     .slots { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .datos, .exito { padding-inline: 16px; }
+    .campos { grid-template-columns: 1fr; }
   }
 </style>
