@@ -98,6 +98,14 @@
     gap: 24px 48px; margin-bottom: clamp(28px, 4vw, 48px);
   }
   .sec-title { font-size: clamp(48px, 6.2vw, 84px); margin-top: 18px; }
+  /* Subtítulo dentro de una sección, con línea a la derecha. */
+  .sub {
+    display: flex; align-items: center; gap: 14px; margin: 0 0 18px;
+    font-family: var(--font-display); font-weight: 400; font-size: 28px; letter-spacing: .03em;
+    text-transform: uppercase; color: var(--color-fg);
+  }
+  .sub::after { content: ""; flex: 1; height: 1px; background: var(--color-line); }
+  @media (max-width: 640px) { .sub { font-size: 24px; } }
 
   /* Ilustraciones de herramientas al fondo */
   .bg-tool {

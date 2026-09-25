@@ -5,10 +5,9 @@ import BgTool from './BgTool.astro';
 import SectionTitle from './SectionTitle.astro';
 import { negocio } from '../config/negocio';
 import { foto, anchos, enOrden } from '../lib/galeria';
-import datosGaleria from '../content/galeria.json';
 import datosCortes from '../content/cortes.json';
 
-// RF-03: cortes (src/content/cortes.json) y reconocimientos (src/content/galeria.json).
+// RF-03: galería de cortes (src/content/cortes.json). Los reconocimientos van en "Nosotros".
 const PERSPECTIVAS = [
   { id: 'frente', corta: 'Frente', larga: 'Frente' },
   { id: 'izquierdo', corta: 'Izq.', larga: 'Lado izquierdo' },
@@ -26,24 +25,18 @@ const cortes = enOrden(await getCollection('cortes'), datosCortes).map((c) => {
   return { id: c.id, nombre: c.data.nombre, vistas, inicial };
 });
 
-const reconocimientos = enOrden(await getCollection('galeria'), datosGaleria).map((g) => ({
-  id: g.id,
-  ...g.data,
-  img: foto(g.data.archivo),
-}));
 ---
 
 <section class="section" id="trabajo" aria-labelledby="t-trabajo">
   <BgTool tool="scissors" class="bt-trab red" />
   <div class="wrap">
     <div class="sec-head">
-      <SectionTitle eyebrow="Trayectoria" id="t-trabajo">Nuestro trabajo</SectionTitle>
+      <SectionTitle eyebrow="Cortes" id="t-trabajo">Nuestro trabajo</SectionTitle>
       <a class="btn btn-ghost" href={negocio.instagram.url} target="_blank" rel="noopener">
         <svg class="ico" aria-hidden="true"><use href="#i-ig" /></svg>Ver más en Instagram
       </a>
     </div>
 
-    <h3 class="sub">Cortes</h3>
     <div class="cortes">
       {cortes.map((c) => (
         <article class="corte" data-corte>
@@ -60,7 +53,7 @@ const reconocimientos = enOrden(await getCollection('galeria'), datosGaleria).ma
             ))}
           </div>
           <div class="info">
-            <h4>{c.nombre}</h4>
+            <h3>{c.nombre}</h3>
             <div class="vistas" role="group" aria-label={`Perspectivas de ${c.nombre}`}>
               {c.vistas.map((v) => (
                 <button type="button" data-ver={v.id} disabled={!v.img}
@@ -75,16 +68,6 @@ const reconocimientos = enOrden(await getCollection('galeria'), datosGaleria).ma
       ))}
     </div>
 
-    <h3 class="sub">Reconocimientos</h3>
-    <div class="gal">
-      {reconocimientos.map((r) => (
-        <figure>
-          <Image class="ph" src={r.img} alt={r.alt} widths={anchos(r.img)}
-            sizes="(max-width: 900px) 50vw, 400px" style={r.posicion ? `object-position: ${r.posicion}` : undefined} />
-          <figcaption><b>{r.tipo}</b><span>{r.titulo}</span></figcaption>
-        </figure>
-      ))}
-    </div>
   </div>
 </section>
 
@@ -103,13 +86,6 @@ const reconocimientos = enOrden(await getCollection('galeria'), datosGaleria).ma
 </script>
 
 <style>
-  .sub {
-    display: flex; align-items: center; gap: 14px; margin: 0 0 18px;
-    font-family: var(--font-display); font-weight: 400; font-size: 28px; letter-spacing: .03em;
-    text-transform: uppercase; color: var(--color-fg);
-  }
-  .sub::after { content: ""; flex: 1; height: 1px; background: var(--color-line); }
-  .cortes + .sub { margin-top: clamp(40px, 6vw, 64px); }
 
   /* Cortes */
   .cortes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
@@ -125,7 +101,7 @@ const reconocimientos = enOrden(await getCollection('galeria'), datosGaleria).ma
   }
   .fotos :global(.foto.activa) { opacity: 1; transform: none; }
   .info { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 16px; }
-  h4 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 22px; letter-spacing: .02em; text-transform: uppercase; line-height: 1.05; }
+  h3 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 22px; letter-spacing: .02em; text-transform: uppercase; line-height: 1.05; }
   .vistas { margin-top: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
   .vistas button {
     min-height: 40px; padding: 0 4px; border: 1px solid var(--color-line-2); border-radius: 4px;
@@ -136,25 +112,12 @@ const reconocimientos = enOrden(await getCollection('galeria'), datosGaleria).ma
   .vistas button[aria-pressed="true"] { background: var(--color-red); border-color: var(--color-red); color: #fff; }
   .vistas button:disabled { color: #55555c; border-color: #1f1f23; border-style: dashed; cursor: not-allowed; }
 
-  /* Reconocimientos */
-  .gal { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-  figure { margin: 0; display: flex; flex-direction: column; gap: 12px; }
-  .gal :global(.ph) {
-    width: 100%; aspect-ratio: 4 / 5; object-fit: cover; object-position: center 30%;
-    border-radius: 8px; border: 1px solid var(--color-line);
-    transition: border-color .25s, transform .35s var(--ease);
-  }
-  figure:hover :global(.ph) { border-color: var(--color-red); transform: scale(1.015); }
-  figcaption { display: flex; flex-direction: column; gap: 2px; }
-  figcaption b { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--color-red-text); }
-  figcaption span { font-size: 16px; font-weight: 500; color: #e4e4e8; }
   section :global(.bt-trab) { width: clamp(200px, 20vw, 300px); left: -2%; top: 4%; transform: rotate(-22deg); }
 
   @media (max-width: 1080px) {
     .cortes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (max-width: 900px) {
-    .gal { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
     section :global(.bt-trab) { width: 46vw; left: auto; right: -10%; top: 2%; }
   }
   /* En celular los cortes se deslizan de lado en lugar de apilarse. */
@@ -167,6 +130,5 @@ const reconocimientos = enOrden(await getCollection('galeria'), datosGaleria).ma
     .cortes::-webkit-scrollbar { display: none; }
     .corte { flex: 0 0 82%; scroll-snap-align: start; }
     .corte:hover { transform: none; }
-    .sub { font-size: 24px; }
   }
 </style>
