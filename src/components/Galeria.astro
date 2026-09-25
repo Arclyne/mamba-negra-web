@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+import { getImage } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import BgTool from './BgTool.astro';
 import SectionTitle from './SectionTitle.astro';
@@ -15,15 +15,24 @@ const PERSPECTIVAS = [
   { id: 'atras', corta: 'Atrás', larga: 'Atrás' },
 ] as const;
 
-const cortes = enOrden(await getCollection('cortes'), datosCortes).map((c) => {
-  const vistas = PERSPECTIVAS.map((p) => {
-    const ruta = c.data.vistas[p.id];
-    return { ...p, img: ruta ? foto(ruta) : undefined };
-  });
-  // Se muestra primero la primera perspectiva disponible (en el orden de PERSPECTIVAS).
-  const inicial = vistas.find((v) => v.img)!.id;
-  return { id: c.id, nombre: c.data.nombre, vistas, inicial };
-});
+const SIZES = '(max-width: 640px) 100vw, (max-width: 1080px) 50vw, 400px';
+
+const cortes = await Promise.all(
+  enOrden(await getCollection('cortes'), datosCortes).map(async (c) => {
+    const vistas = await Promise.all(
+      PERSPECTIVAS.map(async (p) => {
+        const ruta = c.data.vistas[p.id];
+        if (!ruta) return { ...p, img: undefined };
+        const original = foto(ruta);
+        const img = await getImage({ src: original, widths: anchos(original), sizes: SIZES });
+        return { ...p, img };
+      }),
+    );
+    // Se muestra primero la primera perspectiva disponible (en el orden de PERSPECTIVAS).
+    const inicial = vistas.find((v) => v.img)!.id;
+    return { id: c.id, nombre: c.data.nombre, vistas, inicial };
+  }),
+);
 
 ---
 
@@ -41,16 +50,26 @@ const cortes = enOrden(await getCollection('cortes'), datosCortes).map((c) => {
       {cortes.map((c) => (
         <article class="corte" data-corte>
           <div class="fotos">
-            {c.vistas.filter((v) => v.img).map((v) => (
-              <Image
-                src={v.img!}
-                alt={`${c.nombre}, vista ${v.larga.toLowerCase()}`}
-                widths={anchos(v.img!)}
-                sizes="(max-width: 640px) 100vw, (max-width: 1080px) 50vw, 400px"
-                class:list={['foto', { activa: v.id === c.inicial }]}
-                data-vista={v.id}
-              />
-            ))}
+            {/* Solo la perspectiva visible se descarga al cargar; las demás, al pulsar (o señalar) su botón. */}
+            {c.vistas.filter((v) => v.img).map((v) => {
+              const activa = v.id === c.inicial;
+              const fuente = activa
+                ? { src: v.img!.src, srcset: v.img!.srcSet.attribute }
+                : { 'data-src': v.img!.src, 'data-srcset': v.img!.srcSet.attribute };
+              return (
+                <img
+                  {...fuente}
+                  sizes={SIZES}
+                  width={v.img!.attributes.width}
+                  height={v.img!.attributes.height}
+                  alt={`${c.nombre}, vista ${v.larga.toLowerCase()}`}
+                  loading="lazy"
+                  decoding="async"
+                  class:list={['foto', { activa }]}
+                  data-vista={v.id}
+                />
+              );
+            })}
           </div>
           <div class="info">
             <h3>{c.nombre}</h3>
@@ -76,12 +95,24 @@ const cortes = enOrden(await getCollection('cortes'), datosCortes).map((c) => {
   document.querySelectorAll<HTMLElement>('[data-corte]').forEach((corte) => {
     const botones = corte.querySelectorAll<HTMLButtonElement>('[data-ver]');
     const fotos = corte.querySelectorAll<HTMLImageElement>('[data-vista]');
-    botones.forEach((b) =>
+    const cargar = (vista?: string) => {
+      const f = Array.from(fotos).find((x) => x.dataset.vista === vista);
+      if (!f || !f.dataset.src) return;
+      f.srcset = f.dataset.srcset!;
+      f.src = f.dataset.src;
+      delete f.dataset.src;
+      delete f.dataset.srcset;
+    };
+    botones.forEach((b) => {
+      // Adelanta la descarga al señalar el botón, para que el cambio se vea sin espera.
+      b.addEventListener('pointerenter', () => cargar(b.dataset.ver));
+      b.addEventListener('focus', () => cargar(b.dataset.ver));
       b.addEventListener('click', () => {
+        cargar(b.dataset.ver);
         botones.forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
         fotos.forEach((f) => f.classList.toggle('activa', f.dataset.vista === b.dataset.ver));
-      }),
-    );
+      });
+    });
   });
 </script>
 

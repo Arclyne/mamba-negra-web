@@ -45,8 +45,11 @@ function bootstrap(origin: string) {
 
 const iniciados = new Set<string>();
 
-/** Monta el calendario de un tipo de evento dentro de `el`. */
-export function montarCalendario(el: HTMLElement, opts: { origin: string; calLink: string; namespace: string }) {
+/** Monta el calendario de un tipo de evento dentro de `el`. `alReservar` se llama cuando se confirma una reserva. */
+export function montarCalendario(
+  el: HTMLElement,
+  opts: { origin: string; calLink: string; namespace: string; alReservar?: () => void },
+) {
   const Cal = bootstrap(opts.origin);
   const ns = opts.namespace;
   if (!iniciados.has(ns)) {
@@ -65,4 +68,10 @@ export function montarCalendario(el: HTMLElement, opts: { origin: string; calLin
     hideEventTypeDetails: true,
     cssVarsPerTheme: { dark: { 'cal-brand': '#D7262E' } },
   });
+  if (opts.alReservar) {
+    // Cal.com avisa con estos eventos cuando se confirma una reserva (V2 es el actual; el otro, el anterior).
+    for (const action of ['bookingSuccessfulV2', 'bookingSuccessful']) {
+      Cal.ns[ns]('on', { action, callback: opts.alReservar });
+    }
+  }
 }
