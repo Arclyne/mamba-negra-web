@@ -17,9 +17,12 @@ const conCal = usuario.trim() !== '';
       <strong id="sumSvc"></strong>
       <span><span id="sumDur"></span> · <span class="p" id="sumPrice"></span></span>
     </div>
-    <button type="button" class="btn btn-ghost cambiar" id="cambiar">
-      <span aria-hidden="true">←</span> Cambiar servicio
-    </button>
+    <div class="acciones">
+      <button type="button" class="btn btn-red" id="otraReserva" hidden>Hacer otra reserva</button>
+      <button type="button" class="btn btn-ghost cambiar" id="cambiar">
+        <span aria-hidden="true">←</span> Cambiar servicio
+      </button>
+    </div>
     {conCal && (
       <ul class="rules" aria-label="Condiciones de la reserva">
         <li><svg class="ico" aria-hidden="true"><use href="#i-clock" /></svg>Reserva hasta 30 min antes</li>
@@ -54,6 +57,9 @@ const conCal = usuario.trim() !== '';
   const picks = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-pick]'));
   const embed = document.getElementById('calEmbed');
   const montados = new Map<string, HTMLElement>();
+  // Servicios cuyo calendario ya muestra "reserva confirmada": se vuelven a montar limpios al regresar.
+  const reservados = new Set<string>();
+  let montajes = 0;
   let actual = '';
 
   const $ = (id: string) => document.getElementById(id);
@@ -63,13 +69,30 @@ const conCal = usuario.trim() !== '';
   function mostrarCalendario() {
     if (!conCal || !embed) return;
     const d = datos(actual)!;
+    // Si ya se reservó con este calendario, se descarta: si no, seguiría en la pantalla de éxito.
+    if (reservados.has(actual)) {
+      montados.get(actual)?.remove();
+      montados.delete(actual);
+      reservados.delete(actual);
+    }
+    $('otraReserva')!.hidden = true;
     montados.forEach((el, id) => { el.hidden = id !== actual; });
     if (montados.has(actual)) return;
     const el = document.createElement('div');
     el.className = 'cal-frame';
     embed.appendChild(el);
     montados.set(actual, el);
-    montarCalendario(el, { origin, calLink: d.evento!, namespace: `svc_${actual.replace(/-/g, '_')}` });
+    const servicio = actual;
+    montarCalendario(el, {
+      origin,
+      calLink: d.evento!,
+      // Cada montaje usa su propio namespace de Cal.com para que un calendario nuevo no herede el anterior.
+      namespace: `svc_${servicio.replace(/-/g, '_')}_${++montajes}`,
+      alReservar: () => {
+        reservados.add(servicio);
+        if (actual === servicio) $('otraReserva')!.hidden = false;
+      },
+    });
     // Cal.com inserta su iframe; entonces se quita el aviso de carga y se cambia su título
     // ("Book a call", en inglés) por uno en español: es el globito al pasar el cursor y lo que leen los lectores de pantalla.
     new MutationObserver((_, obs) => {
@@ -113,6 +136,8 @@ const conCal = usuario.trim() !== '';
   // Botón "Reservar" de cada tarjeta. Sin JavaScript, el enlace abre Cal.com o WhatsApp directamente.
   picks.forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); elegir(a.dataset.pick!); }));
   $('cambiar')!.addEventListener('click', cambiar);
+  // Después de reservar: vuelve a mostrar el calendario del mismo servicio, limpio.
+  $('otraReserva')!.addEventListener('click', () => { mostrarCalendario(); $('paso2-t')!.focus(); });
   // Enlace directo con servicio: /?servicio=permacologia#reservar (útil para Instagram).
   const deUrl = new URLSearchParams(location.search).get('servicio');
   if (deUrl && datos(deUrl)) elegir(deUrl);
@@ -151,7 +176,8 @@ const conCal = usuario.trim() !== '';
   .elegido-txt { display: flex; flex-direction: column; gap: 2px; color: var(--color-body); font-size: 15px; }
   .elegido-txt strong { font-family: var(--font-display); font-weight: 400; font-size: 29px; letter-spacing: .02em; text-transform: uppercase; line-height: 1; color: var(--color-fg); }
   .elegido-txt .p { color: var(--color-fg); font-weight: 600; }
-  .cambiar { min-height: 44px; padding: 0 18px; font-size: 13px; }
+  .acciones { display: flex; flex-wrap: wrap; gap: 10px; }
+  .acciones .btn { min-height: 44px; padding: 0 18px; font-size: 13px; }
 
   /* Condiciones de la reserva: dentro del panel, para que se vean junto al calendario.
      Cada vez que se abre el panel entran una tras otra (la animación se reinicia al mostrarse). */
@@ -180,7 +206,8 @@ const conCal = usuario.trim() !== '';
   @media (max-width: 640px) {
     .book { padding: 20px 4px; }
     .elegido { padding-inline: 16px; }
-    .cambiar { width: 100%; }
+    .acciones { width: 100%; }
+    .acciones .btn { flex: 1; }
     .rules { flex-direction: column; gap: 8px; font-size: 14px; }
   }
 </style>
