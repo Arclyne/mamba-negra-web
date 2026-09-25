@@ -47,7 +47,7 @@ export const negocio = {
   // de reservas, no es un secreto. Mientras esté vacío, la sección de reservas
   // muestra el respaldo por WhatsApp en lugar del calendario.
   calcom: {
-    usuario: '',
+    usuario: 'la-mamba-negra',
     origen: 'https://app.cal.com',
   },
 
