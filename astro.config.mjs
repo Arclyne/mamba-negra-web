@@ -3,8 +3,10 @@ import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 
-// Dominio definitivo del negocio (Fase 0). Se usa para URLs canónicas, Open Graph y sitemap.
-const SITE = process.env.SITE_URL ?? 'https://lamambanegra.com.mx';
+// URL pública del sitio, para URLs canónicas, Open Graph y sitemap.
+// En Netlify se usa `URL`, que Netlify define en cada compilación con el dominio principal del
+// proyecto: hoy la-mamba-negra.netlify.app y, cuando se conecte el dominio propio, ese dominio.
+const SITE = process.env.SITE_URL ?? process.env.URL ?? 'https://la-mamba-negra.netlify.app';
 
 export default defineConfig({
   site: SITE,

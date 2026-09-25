@@ -24,7 +24,8 @@ const {
   noindex = false,
 } = Astro.props;
 
-const canonical = new URL(Astro.url.pathname, Astro.site);
+// Con build.format 'file' las rutas terminan en .html; la URL pública no lo lleva (/, /aviso-de-privacidad).
+const canonical = new URL(Astro.url.pathname.replace(/(?:index)?\.html$/, ''), Astro.site);
 const ogImage = await getImage({ src: logo, width: 600, format: 'jpg', quality: 85 });
 const ogImageUrl = new URL(ogImage.src, Astro.site);
 
