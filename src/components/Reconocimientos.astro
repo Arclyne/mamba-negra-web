@@ -1,0 +1,41 @@
+---
+// Fotos de reconocimientos y competencias (src/content/galeria.json). Va dentro de "Nosotros".
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import { foto, anchos, enOrden } from '../lib/galeria';
+import datosGaleria from '../content/galeria.json';
+
+const reconocimientos = enOrden(await getCollection('galeria'), datosGaleria).map((g) => ({
+  id: g.id,
+  ...g.data,
+  img: foto(g.data.archivo),
+}));
+---
+
+<h3 class="sub" id="reconocimientos">Reconocimientos</h3>
+<div class="gal">
+  {reconocimientos.map((r) => (
+    <figure>
+      <Image class="ph" src={r.img} alt={r.alt} widths={anchos(r.img)}
+        sizes="(max-width: 900px) 50vw, 400px" style={r.posicion ? `object-position: ${r.posicion}` : undefined} />
+      <figcaption><b>{r.tipo}</b><span>{r.titulo}</span></figcaption>
+    </figure>
+  ))}
+</div>
+
+<style>
+  .gal { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 12px; }
+  .gal :global(.ph) {
+    width: 100%; aspect-ratio: 4 / 5; object-fit: cover; object-position: center 30%;
+    border-radius: 8px; border: 1px solid var(--color-line);
+    transition: border-color .25s, transform .35s var(--ease);
+  }
+  figure:hover :global(.ph) { border-color: var(--color-red); transform: scale(1.015); }
+  figcaption { display: flex; flex-direction: column; gap: 2px; }
+  figcaption b { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--color-red-text); }
+  figcaption span { font-size: 16px; font-weight: 500; color: #e4e4e8; }
+  @media (max-width: 900px) {
+    .gal { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  }
+</style>

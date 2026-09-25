@@ -22,7 +22,7 @@ if (!reduce && 'IntersectionObserver' in window) {
 
   const selector = [
     '.strip li', '.section .sec-head', '.rev-top', '.rev', '.about-grid > *', '.stats > div',
-    '#nosotros blockquote', '.gal figure', '.book', '.rules', '.contact-info > *', '.map',
+    '#nosotros blockquote', '.sub', '.corte', '.gal figure', '.book', '.rules', '.contact-info > *', '.map',
   ].join(',');
   document.querySelectorAll<HTMLElement>(selector).forEach((el) => {
     if (!bajoElPliegue(el, 0.92)) return;

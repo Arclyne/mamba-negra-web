@@ -1,124 +1,67 @@
 ---
-import { getServicios, duracionTexto } from '../lib/servicios';
-import BgTool from './BgTool.astro';
-import SectionTitle from './SectionTitle.astro';
+// Paso 2 de la reserva: el calendario del servicio elegido. Vive dentro de la sección de
+// servicios (Servicios.astro), cuyas tarjetas son el paso 1.
 import { negocio, waLink } from '../config/negocio';
-
-const servicios = await getServicios();
-const grupos = [
-  { etiqueta: 'Servicios', items: servicios.filter((s) => s.data.categoria === 'servicio') },
-  { etiqueta: 'Combos', items: servicios.filter((s) => s.data.categoria === 'combo') },
-];
-const inicial = servicios[0];
 
 // Con la cuenta de Cal.com del negocio configurada se muestra el calendario real (RF-04).
 // Sin ella, la reserva se hace por WhatsApp con el servicio ya escrito en el mensaje.
 const { usuario, origen } = negocio.calcom;
 const conCal = usuario.trim() !== '';
-const calLink = (id: string, evento?: string) => `${usuario}/${evento ?? id}`;
-const mensajeWa = (nombre: string, precio: number) => `Hola, quiero agendar una cita para: ${nombre} ($${precio} MXN).`;
 ---
 
-<section class="section alt" id="reservar" aria-labelledby="t-reservar">
-  <BgTool tool="razor" class="bt-book" />
-  <div class="wrap">
-    <div class="sec-head">
-      <SectionTitle eyebrow="Agenda tu visita" id="t-reservar">Reservar cita</SectionTitle>
-      <p class="intro">
-        {conCal
-          ? 'Elige servicio, día y hora. Te llega la confirmación por correo y un recordatorio un día antes.'
-          : 'Elige tu servicio y escríbenos por WhatsApp para confirmar día y hora.'}
-      </p>
+<!-- Ojo: no usar atributos data-cal-*, el script de Cal.com los convierte en botones de ventana emergente. -->
+<div class="book" id="booking" hidden data-reservas-cal={conCal ? '' : undefined} data-origen={origen} data-wa={waLink()}>
+  <div class="elegido">
+    <div class="elegido-txt">
+      <h3 class="step" id="paso2-t" tabindex="-1">{conCal ? 'Elige día y hora' : 'Confirma por WhatsApp'}</h3>
+      <strong id="sumSvc"></strong>
+      <span><span id="sumDur"></span> · <span class="p" id="sumPrice"></span></span>
     </div>
-
-    <div class="book" id="booking" data-cal={conCal ? '' : undefined} data-cal-origin={origen} data-wa={waLink()}>
-      <div class="b-svc">
-        <span class="step" id="lbl-svc">1 · Servicio</span>
-        <div class="svc-list" role="group" aria-labelledby="lbl-svc">
-          {grupos.map((g) => (
-            <>
-              <span class="grp">{g.etiqueta}</span>
-              {g.items.map((s) => (
-                <button type="button" data-svc={s.id} data-nombre={s.data.nombre} data-precio={s.data.precio}
-                  data-duracion={duracionTexto(s.data.duracion)} data-cal-link={calLink(s.id, s.data.calEvento)}
-                  aria-pressed={s.id === inicial.id ? 'true' : 'false'}>
-                  <span>{s.data.nombre}</span><em>${s.data.precio}</em>
-                </button>
-              ))}
-            </>
-          ))}
-        </div>
-        <div class="svc-select">
-          <label class="step" for="svcSelect">1 · Servicio</label>
-          <select id="svcSelect">
-            {grupos.map((g) => (
-              <optgroup label={g.etiqueta}>
-                {g.items.map((s) => <option value={s.id} selected={s.id === inicial.id}>{s.data.nombre} — ${s.data.precio}</option>)}
-              </optgroup>
-            ))}
-          </select>
-        </div>
-        <div class="summary" aria-live="polite">
-          <strong id="sumSvc">{inicial.data.nombre}</strong>
-          <span><span id="sumDur">{duracionTexto(inicial.data.duracion)}</span> · <span class="p" id="sumPrice">${inicial.data.precio} MXN</span></span>
-        </div>
-      </div>
-
-      <div class="b-cal">
-        {conCal ? (
-          <>
-            <span class="step">2 · Día y hora</span>
-            <div class="cal-embed" id="calEmbed">
-              <p class="cal-loading" id="calLoading">Cargando horarios disponibles…</p>
-            </div>
-            <noscript>
-              <p class="fallback-note">
-                Para ver los horarios, abre <a href={`https://cal.com/${calLink(inicial.id, inicial.data.calEvento)}`}>nuestra agenda en Cal.com</a>
-                {' '}o escríbenos por <a href={waLink(mensajeWa(inicial.data.nombre, inicial.data.precio))}>WhatsApp</a>.
-              </p>
-            </noscript>
-          </>
-        ) : (
-          <div class="wa-box">
-            <span class="step">2 · Confirma por WhatsApp</span>
-            <p>Te respondemos con los horarios disponibles para <strong id="waSvc">{inicial.data.nombre}</strong>.</p>
-            <a class="btn btn-red" id="waBtn" href={waLink(mensajeWa(inicial.data.nombre, inicial.data.precio))} target="_blank" rel="noopener">
-              <svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>Agendar por WhatsApp
-            </a>
-            <p class="hours-note">{negocio.horario.resumen} · Domingos cerrado</p>
-          </div>
-        )}
-      </div>
-    </div>
-
+    <button type="button" class="btn btn-ghost cambiar" id="cambiar">
+      <span aria-hidden="true">←</span> Cambiar servicio
+    </button>
     {conCal && (
-      <div class="rules">
-        <span><svg class="ico" aria-hidden="true"><use href="#i-clock" /></svg>Reserva hasta 30 min antes</span>
-        <span><svg class="ico" aria-hidden="true"><use href="#i-undo" /></svg>Cancela o cambia hasta 1 h antes, desde tu correo</span>
-        <span><svg class="ico" aria-hidden="true"><use href="#i-mail" /></svg>Confirmación y recordatorio por correo</span>
-      </div>
+      <ul class="rules" aria-label="Condiciones de la reserva">
+        <li><svg class="ico" aria-hidden="true"><use href="#i-clock" /></svg>Reserva hasta 30 min antes</li>
+        <li><svg class="ico" aria-hidden="true"><use href="#i-undo" /></svg>Si necesitas cancelar o cambiar, avísanos con 1 h de anticipación desde tu correo</li>
+        <li><svg class="ico" aria-hidden="true"><use href="#i-mail" /></svg>Confirmación y recordatorio por correo</li>
+      </ul>
     )}
   </div>
-</section>
+
+  {conCal ? (
+    <div class="cal-embed" id="calEmbed">
+      <p class="cal-loading" id="calLoading">Cargando horarios disponibles…</p>
+    </div>
+  ) : (
+    <div class="wa-box">
+      <p>Te respondemos con los horarios disponibles para <strong id="waSvc"></strong>.</p>
+      <a class="btn btn-red" id="waBtn" href={waLink()} target="_blank" rel="noopener">
+        <svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>Agendar por WhatsApp
+      </a>
+      <p class="hours-note">{negocio.horario.resumen} · Domingos cerrado</p>
+    </div>
+  )}
+</div>
 
 <script>
   import { montarCalendario } from '../scripts/calcom';
 
-  const root = document.getElementById('booking')!;
-  const conCal = root.hasAttribute('data-cal');
-  const origin = root.dataset.calOrigin!;
-  const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-svc]'));
-  const select = document.getElementById('svcSelect') as HTMLSelectElement;
+  const book = document.getElementById('booking')!;
+  const paso1 = document.getElementById('paso1')!;
+  const conCal = book.hasAttribute('data-reservas-cal');
+  const origin = book.dataset.origen!;
+  const picks = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-pick]'));
   const embed = document.getElementById('calEmbed');
   const montados = new Map<string, HTMLElement>();
-  let actual = buttons.find((b) => b.getAttribute('aria-pressed') === 'true')!.dataset.svc!;
-  let activo = false; // el calendario se carga solo cuando hace falta
+  let actual = '';
 
   const $ = (id: string) => document.getElementById(id);
-  const datos = (id: string) => buttons.find((b) => b.dataset.svc === id)?.dataset;
+  const datos = (id: string) => picks.find((a) => a.dataset.pick === id)?.dataset;
+  const suave = () => (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
 
   function mostrarCalendario() {
-    if (!conCal || !embed || !activo) return;
+    if (!conCal || !embed) return;
     const d = datos(actual)!;
     montados.forEach((el, id) => { el.hidden = id !== actual; });
     if (montados.has(actual)) return;
@@ -126,118 +69,118 @@ const mensajeWa = (nombre: string, precio: number) => `Hola, quiero agendar una 
     el.className = 'cal-frame';
     embed.appendChild(el);
     montados.set(actual, el);
-    montarCalendario(el, { origin, calLink: d.calLink!, namespace: `svc_${actual.replace(/-/g, '_')}` });
-    // Cal.com inserta su iframe; entonces se quita el aviso de carga.
+    montarCalendario(el, { origin, calLink: d.evento!, namespace: `svc_${actual.replace(/-/g, '_')}` });
+    // Cal.com inserta su iframe; entonces se quita el aviso de carga y se cambia su título
+    // ("Book a call", en inglés) por uno en español: es el globito al pasar el cursor y lo que leen los lectores de pantalla.
     new MutationObserver((_, obs) => {
-      if (el.querySelector('iframe')) { $('calLoading')?.remove(); obs.disconnect(); }
+      const iframe = el.querySelector('iframe');
+      if (!iframe) return;
+      iframe.title = `Calendario para reservar: ${d.nombre}`;
+      $('calLoading')?.remove();
+      obs.disconnect();
     }).observe(el, { childList: true, subtree: true });
   }
 
+  /** Paso 2: oculta las tarjetas y muestra el calendario (o WhatsApp) del servicio elegido. */
   function elegir(id: string) {
     const d = datos(id);
     if (!d) return;
     actual = id;
-    buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.svc === id)));
-    select.value = id;
     $('sumSvc')!.textContent = d.nombre!;
     $('sumDur')!.textContent = d.duracion!;
     $('sumPrice')!.textContent = `$${d.precio} MXN`;
-    const sum = root.querySelector('.summary')!;
-    sum.classList.remove('flash'); void (sum as HTMLElement).offsetWidth; sum.classList.add('flash');
     if (conCal) {
-      activo = true;
       mostrarCalendario();
     } else {
       $('waSvc')!.textContent = d.nombre!;
       const msg = `Hola, quiero agendar una cita para: ${d.nombre} ($${d.precio} MXN).`;
-      ($('waBtn') as HTMLAnchorElement).href = `${root.dataset.wa}?text=${encodeURIComponent(msg)}`;
+      ($('waBtn') as HTMLAnchorElement).href = `${book.dataset.wa}?text=${encodeURIComponent(msg)}`;
     }
+    paso1.hidden = true;
+    book.hidden = false;
+    // Lleva al panel del calendario (no al inicio de la sección) para ver el calendario y las horas completos.
+    book.scrollIntoView({ behavior: suave(), block: 'start' });
+    $('paso2-t')!.focus({ preventScroll: true });
   }
 
-  buttons.forEach((b) => b.addEventListener('click', () => elegir(b.dataset.svc!)));
-  select.addEventListener('change', () => elegir(select.value));
-  // Botón "Reservar" de una tarjeta de servicio.
-  window.addEventListener('mamba:servicio', (e) => elegir((e as CustomEvent<string>).detail));
+  /** Vuelve a las tarjetas; el calendario ya cargado se conserva. */
+  function cambiar() {
+    book.hidden = true;
+    paso1.hidden = false;
+    window.dispatchEvent(new CustomEvent('mamba:cambiar', { detail: actual }));
+  }
+
+  // Botón "Reservar" de cada tarjeta. Sin JavaScript, el enlace abre Cal.com o WhatsApp directamente.
+  picks.forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); elegir(a.dataset.pick!); }));
+  $('cambiar')!.addEventListener('click', cambiar);
   // Enlace directo con servicio: /?servicio=permacologia#reservar (útil para Instagram).
   const deUrl = new URLSearchParams(location.search).get('servicio');
   if (deUrl && datos(deUrl)) elegir(deUrl);
 
-  // Carga diferida: el calendario se monta cuando la sección está por entrar en pantalla.
+  // Al acercarse a la sección se abre la conexión con Cal.com para que el calendario aparezca rápido.
   if (conCal) {
     const io = new IntersectionObserver((entries) => {
-      if (entries.some((en) => en.isIntersecting)) { activo = true; mostrarCalendario(); io.disconnect(); }
-    }, { rootMargin: '400px 0px' });
-    io.observe(root);
+      if (!entries.some((en) => en.isIntersecting)) return;
+      const link = document.createElement('link');
+      link.rel = 'preconnect';
+      link.href = origin;
+      document.head.appendChild(link);
+      io.disconnect();
+    }, { rootMargin: '600px 0px' });
+    io.observe(paso1);
   }
 </script>
 
 <style>
-  .intro { margin: 0; max-width: 28em; color: var(--color-body); }
   .book {
-    display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
-    border: 1px solid var(--color-line-2); border-radius: 10px; background: var(--color-bg); overflow: hidden;
+    border: 1px solid var(--color-line-2); border-radius: 10px; background: var(--color-bg); padding: 28px;
+    /* Con el scroll-padding global (96 px), el panel queda ~24 px debajo del encabezado compacto. */
+    scroll-margin-top: -8px;
   }
-  .book > div { padding: 28px; }
-  .book > div + div { border-left: 1px solid var(--color-line); }
-  .step { font-size: 13px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--color-muted); margin: 0 0 14px; display: block; }
-  .grp { display: block; margin: 10px 14px 4px; font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--color-muted); }
-  .grp:first-child { margin-top: 0; }
-
-  .svc-list { display: flex; flex-direction: column; gap: 4px; }
-  .svc-list button {
-    min-height: 44px; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 0 14px;
-    border: 1px solid transparent; border-radius: 6px; background: transparent; text-align: left;
-    font-size: 15px; font-weight: 500; cursor: pointer; color: var(--color-fg);
-    transition: background .15s, border-color .15s, transform .15s;
-  }
-  .svc-list button:hover { background: var(--color-surface); }
-  .svc-list button[aria-pressed="true"] { border-color: var(--color-red); background: var(--color-red-dim); font-weight: 700; }
-  .svc-list em { font-style: normal; font-family: var(--font-display); font-size: 22px; letter-spacing: .03em; }
-  .svc-select { display: none; }
-  .svc-select select {
-    width: 100%; min-height: 52px; padding: 0 14px; border-radius: 6px; border: 1px solid var(--color-red);
-    background: var(--color-red-dim); color: var(--color-fg); font-size: 16px; font-weight: 600;
+  .book:not([hidden]) { animation: pasoIn .35s var(--ease) both; }
+  @keyframes pasoIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .step {
+    font-size: 13px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--color-muted); margin: 0 0 8px; display: block; outline: none;
   }
 
-  .summary {
-    margin-top: 18px; padding: 16px; border-radius: 6px; background: var(--color-surface); border: 1px solid var(--color-line-2);
-    display: flex; flex-direction: column; gap: 2px; font-size: 15px; color: var(--color-body);
+  .elegido {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+    padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--color-line);
   }
-  .summary strong { color: var(--color-fg); font-size: 16px; }
-  .summary .p { color: var(--color-fg); font-weight: 600; }
-  .summary.flash { animation: flash .8s ease-out; }
-  @keyframes flash { 0% { background: #3a1114; border-color: var(--color-red); } 100% { background: var(--color-surface); border-color: var(--color-line-2); } }
+  .elegido-txt { display: flex; flex-direction: column; gap: 2px; color: var(--color-body); font-size: 15px; }
+  .elegido-txt strong { font-family: var(--font-display); font-weight: 400; font-size: 29px; letter-spacing: .02em; text-transform: uppercase; line-height: 1; color: var(--color-fg); }
+  .elegido-txt .p { color: var(--color-fg); font-weight: 600; }
+  .cambiar { min-height: 44px; padding: 0 18px; font-size: 13px; }
 
-  .cal-embed { position: relative; min-height: 560px; }
+  /* Condiciones de la reserva: dentro del panel, para que se vean junto al calendario.
+     Cada vez que se abre el panel entran una tras otra (la animación se reinicia al mostrarse). */
+  .rules {
+    flex-basis: 100%; list-style: none; margin: 4px 0 0; padding: 0;
+    display: flex; flex-wrap: wrap; gap: 10px 32px; font-size: 15px; color: var(--color-body);
+  }
+  .rules li { display: flex; align-items: center; gap: 10px; animation: rise .5s var(--ease) both; }
+  .rules li:nth-child(1) { animation-delay: .15s; }
+  .rules li:nth-child(2) { animation-delay: .25s; }
+  .rules li:nth-child(3) { animation-delay: .35s; }
+  .rules .ico { stroke: var(--color-red-text); }
+
+  .cal-embed { position: relative; min-height: 460px; }
   .cal-embed :global(.cal-frame) { width: 100%; }
   .cal-loading {
     position: absolute; inset: 0; margin: 0; display: flex; align-items: center; justify-content: center;
     color: var(--color-muted); font-size: 15px;
   }
-  .fallback-note { margin: 0; color: var(--color-body); }
 
   .wa-box { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; max-width: 30em; }
   .wa-box p { margin: 0; color: var(--color-body); font-size: 17px; }
   .wa-box strong { color: var(--color-fg); }
   .wa-box .hours-note { font-size: 15px; color: var(--color-soft); }
 
-  .rules { display: flex; flex-wrap: wrap; gap: 12px 40px; margin-top: 28px; font-size: 16px; color: var(--color-body); }
-  .rules span { display: flex; align-items: center; gap: 10px; }
-  .rules .ico { stroke: var(--color-red-text); }
-
-  section :global(.bt-book) { width: clamp(320px, 36vw, 560px); right: -6%; bottom: 4%; transform: rotate(168deg); }
-
-  @media (max-width: 900px) {
-    .book { grid-template-columns: 1fr; }
-    .book > div + div { border-left: 0; border-top: 1px solid var(--color-line); }
-    .svc-list, .b-svc > .step { display: none; }
-    .svc-select { display: block; }
-    section :global(.bt-book) { width: 90vw; right: -30%; bottom: auto; top: 4%; }
-  }
   @media (max-width: 640px) {
-    .book > div { padding: 20px; }
-    .b-cal:has(.cal-embed) { padding-inline: 4px; }
-    .b-cal:has(.cal-embed) .step { padding-inline: 16px; }
-    .rules { flex-direction: column; gap: 12px; }
+    .book { padding: 20px 4px; }
+    .elegido { padding-inline: 16px; }
+    .cambiar { width: 100%; }
+    .rules { flex-direction: column; gap: 8px; font-size: 14px; }
   }
 </style>

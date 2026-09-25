@@ -1,90 +1,134 @@
 ---
 import { Image } from 'astro:assets';
-import type { ImageMetadata } from 'astro';
 import { getCollection } from 'astro:content';
 import BgTool from './BgTool.astro';
 import SectionTitle from './SectionTitle.astro';
 import { negocio } from '../config/negocio';
-import orden from '../content/galeria.json';
+import { foto, anchos, enOrden } from '../lib/galeria';
+import datosCortes from '../content/cortes.json';
 
-// RF-03: las fotos se guardan en src/assets/galeria/ con el nombre indicado en galeria.json.
-// Astro genera versiones WebP de varios tamaños y las carga de forma diferida.
-const fotos = import.meta.glob<{ default: ImageMetadata }>('../assets/galeria/*.{jpg,jpeg,png,webp,avif}', { eager: true });
-const porNombre = new Map(Object.entries(fotos).map(([ruta, mod]) => [ruta.split('/').pop()!, mod.default]));
+// RF-03: galería de cortes (src/content/cortes.json). Los reconocimientos van en "Nosotros".
+const PERSPECTIVAS = [
+  { id: 'frente', corta: 'Frente', larga: 'Frente' },
+  { id: 'izquierdo', corta: 'Izq.', larga: 'Lado izquierdo' },
+  { id: 'derecho', corta: 'Der.', larga: 'Lado derecho' },
+  { id: 'atras', corta: 'Atrás', larga: 'Atrás' },
+] as const;
 
-// Se respeta el orden de galeria.json (la foto "grande" va primero, la "ancha" al final).
-const posicion = new Map(orden.map((g, i) => [g.id, i]));
-const entradas = (await getCollection('galeria')).sort((a, b) => posicion.get(a.id)! - posicion.get(b.id)!);
-const items = entradas.map((g) => {
-  const img = g.data.archivo ? porNombre.get(g.data.archivo) : undefined;
-  if (g.data.archivo && !img) throw new Error(`galeria.json: no existe src/assets/galeria/${g.data.archivo}`);
-  return { ...g.data, id: g.id, img };
+const cortes = enOrden(await getCollection('cortes'), datosCortes).map((c) => {
+  const vistas = PERSPECTIVAS.map((p) => {
+    const ruta = c.data.vistas[p.id];
+    return { ...p, img: ruta ? foto(ruta) : undefined };
+  });
+  // Se muestra primero la primera perspectiva disponible (en el orden de PERSPECTIVAS).
+  const inicial = vistas.find((v) => v.img)!.id;
+  return { id: c.id, nombre: c.data.nombre, vistas, inicial };
 });
-const anchos = (img: ImageMetadata) => {
-  const w = [320, 640, 960, 1280].filter((n) => n <= img.width);
-  return w.length ? w : [img.width];
-};
-const sizes = {
-  grande: '(max-width: 900px) 100vw, 640px',
-  ancho: '(max-width: 1280px) 100vw, 1280px',
-  normal: '(max-width: 900px) 50vw, 310px',
-};
+
 ---
 
 <section class="section" id="trabajo" aria-labelledby="t-trabajo">
   <BgTool tool="scissors" class="bt-trab red" />
   <div class="wrap">
     <div class="sec-head">
-      <SectionTitle eyebrow="Trayectoria" id="t-trabajo">Nuestro trabajo</SectionTitle>
+      <SectionTitle eyebrow="Cortes" id="t-trabajo">Nuestro trabajo</SectionTitle>
       <a class="btn btn-ghost" href={negocio.instagram.url} target="_blank" rel="noopener">
         <svg class="ico" aria-hidden="true"><use href="#i-ig" /></svg>Ver más en Instagram
       </a>
     </div>
-    <div class="gal">
-      {items.map((it) => (
-        <figure class:list={[{ 'g-big': it.tamano === 'grande', 'g-wide': it.tamano === 'ancho' }]}>
-          {it.img ? (
-            <Image class="ph" src={it.img} alt={it.alt ?? `${it.tipo}: ${it.titulo}`}
-              widths={anchos(it.img)} sizes={sizes[it.tamano]} />
-          ) : (
-            <div class="ph ph-empty" role="img" aria-label={`Foto pendiente: ${it.titulo}`}>Foto pendiente</div>
-          )}
-          <figcaption><b>{it.tipo}</b><span>{it.titulo}</span></figcaption>
-        </figure>
+
+    <div class="cortes">
+      {cortes.map((c) => (
+        <article class="corte" data-corte>
+          <div class="fotos">
+            {c.vistas.filter((v) => v.img).map((v) => (
+              <Image
+                src={v.img!}
+                alt={`${c.nombre}, vista ${v.larga.toLowerCase()}`}
+                widths={anchos(v.img!)}
+                sizes="(max-width: 640px) 100vw, (max-width: 1080px) 50vw, 300px"
+                class:list={['foto', { activa: v.id === c.inicial }]}
+                data-vista={v.id}
+              />
+            ))}
+          </div>
+          <div class="info">
+            <h3>{c.nombre}</h3>
+            <div class="vistas" role="group" aria-label={`Perspectivas de ${c.nombre}`}>
+              {c.vistas.map((v) => (
+                <button type="button" data-ver={v.id} disabled={!v.img}
+                  aria-pressed={v.id === c.inicial ? 'true' : 'false'}
+                  aria-label={v.img ? v.larga : `${v.larga} (sin foto)`} title={v.larga}>
+                  {v.corta}
+                </button>
+              ))}
+            </div>
+          </div>
+        </article>
       ))}
     </div>
+
   </div>
 </section>
 
+<script>
+  // Cambia la foto de un corte según la perspectiva elegida.
+  document.querySelectorAll<HTMLElement>('[data-corte]').forEach((corte) => {
+    const botones = corte.querySelectorAll<HTMLButtonElement>('[data-ver]');
+    const fotos = corte.querySelectorAll<HTMLImageElement>('[data-vista]');
+    botones.forEach((b) =>
+      b.addEventListener('click', () => {
+        botones.forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+        fotos.forEach((f) => f.classList.toggle('activa', f.dataset.vista === b.dataset.ver));
+      }),
+    );
+  });
+</script>
+
 <style>
-  .gal { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 240px; gap: 16px; }
-  figure { margin: 0; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
-  .gal :global(.ph) {
-    flex: 1; min-height: 0; width: 100%; object-fit: cover; border-radius: 8px; border: 1px solid var(--color-line);
-    transition: border-color .25s, transform .35s var(--ease);
+
+  /* Cortes */
+  .cortes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  .corte {
+    display: flex; flex-direction: column; border: 1px solid var(--color-line); border-radius: 8px;
+    background: var(--color-bg); overflow: hidden; transition: border-color .2s, transform .25s var(--ease), box-shadow .25s;
   }
-  .gal .ph-empty {
-    border-style: dashed; border-color: #48484f;
-    background: repeating-linear-gradient(135deg, #101012 0 14px, #141416 14px 28px);
-    display: flex; align-items: center; justify-content: center;
-    color: var(--color-muted); font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+  .corte:hover { border-color: var(--color-line-2); transform: translateY(-4px); box-shadow: 0 18px 40px rgba(0, 0, 0, .55), 0 0 0 1px rgba(215, 38, 46, .35); }
+  .fotos { position: relative; aspect-ratio: 4 / 5; background: var(--color-surface); overflow: hidden; }
+  .fotos :global(.foto) {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    opacity: 0; transform: scale(1.03); transition: opacity .35s var(--ease), transform .5s var(--ease);
   }
-  figure:hover :global(.ph) { border-color: var(--color-red); transform: scale(1.015); }
-  figcaption { display: flex; flex-direction: column; gap: 2px; }
-  figcaption b { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--color-red-text); }
-  figcaption span { font-size: 16px; font-weight: 500; color: #e4e4e8; }
-  .g-big { grid-column: span 2; grid-row: span 2; }
-  .g-wide { grid-column: span 4; }
+  .fotos :global(.foto.activa) { opacity: 1; transform: none; }
+  .info { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+  h3 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 22px; letter-spacing: .02em; text-transform: uppercase; line-height: 1.05; }
+  .vistas { margin-top: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .vistas button {
+    min-height: 40px; padding: 0 4px; border: 1px solid var(--color-line-2); border-radius: 4px;
+    background: transparent; color: var(--color-body); font-size: 12px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; cursor: pointer; transition: background .15s, border-color .15s, color .15s;
+  }
+  .vistas button:hover:not(:disabled) { border-color: var(--color-soft); color: var(--color-fg); }
+  .vistas button[aria-pressed="true"] { background: var(--color-red); border-color: var(--color-red); color: #fff; }
+  .vistas button:disabled { color: #55555c; border-color: #1f1f23; border-style: dashed; cursor: not-allowed; }
+
   section :global(.bt-trab) { width: clamp(200px, 20vw, 300px); left: -2%; top: 4%; transform: rotate(-22deg); }
 
+  @media (max-width: 1080px) {
+    .cortes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
   @media (max-width: 900px) {
-    .gal { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 190px; gap: 12px; }
-    .g-wide { grid-column: span 2; }
     section :global(.bt-trab) { width: 46vw; left: auto; right: -10%; top: 2%; }
   }
+  /* En celular los cortes se deslizan de lado en lugar de apilarse. */
   @media (max-width: 640px) {
-    .gal { grid-auto-rows: auto; }
-    .gal :global(.ph) { flex: none; aspect-ratio: 1 / 1; }
-    .g-wide :global(.ph) { aspect-ratio: 2 / 1; }
+    .cortes {
+      display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px;
+      margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); scroll-padding-inline: var(--gutter);
+      padding-bottom: 8px; scrollbar-width: none;
+    }
+    .cortes::-webkit-scrollbar { display: none; }
+    .corte { flex: 0 0 82%; scroll-snap-align: start; }
+    .corte:hover { transform: none; }
   }
 </style>

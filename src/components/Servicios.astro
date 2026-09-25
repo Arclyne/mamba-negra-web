@@ -1,20 +1,38 @@
 ---
 import { getServicios, duracionTexto } from '../lib/servicios';
 import BgTool from './BgTool.astro';
+import Reservar from './Reservar.astro';
 import SectionTitle from './SectionTitle.astro';
+import { negocio, waLink } from '../config/negocio';
 
+// Una sola sección para ver servicios y reservar: las tarjetas son el paso 1 y, al pulsar
+// "Reservar", se cambian por el calendario de ese servicio (paso 2, Reservar.astro).
 const todos = await getServicios();
 const grupos = [
   { id: 'servicios', etiqueta: 'Servicios', items: todos.filter((s) => s.data.categoria === 'servicio') },
   { id: 'combos', etiqueta: 'Combos', items: todos.filter((s) => s.data.categoria === 'combo') },
 ];
+const { usuario } = negocio.calcom;
+const conCal = usuario.trim() !== '';
+const evento = (id: string, calEvento?: string) => `${usuario}/${calEvento ?? id}`;
+// Destino sin JavaScript: la página de Cal.com del servicio, o WhatsApp con el servicio escrito.
+const sinJs = (id: string, nombre: string, precio: number, calEvento?: string) =>
+  conCal ? `https://cal.com/${evento(id, calEvento)}` : waLink(`Hola, quiero agendar una cita para: ${nombre} ($${precio} MXN).`);
 ---
 
 <section class="section alt" id="servicios" aria-labelledby="t-servicios">
+  <span id="reservar" class="ancla" aria-hidden="true"></span>
   <BgTool tool="clipper" class="bt-serv" />
   <div class="wrap">
     <div class="sec-head">
-      <SectionTitle eyebrow="Servicios y precios" id="t-servicios">Lo que hacemos</SectionTitle>
+      <div>
+        <SectionTitle eyebrow="Servicios y reservas" id="t-servicios">Lo que hacemos</SectionTitle>
+        <p class="intro">
+          {conCal
+            ? 'Elige tu servicio y reserva en línea. Te llega la confirmación por correo y un recordatorio un día antes.'
+            : 'Elige tu servicio y agenda por WhatsApp.'}
+        </p>
+      </div>
       <div class="tabs" role="tablist" aria-label="Tipo de servicio">
         <span class="ind" aria-hidden="true"></span>
         {grupos.map((g, i) => (
@@ -24,6 +42,7 @@ const grupos = [
       </div>
     </div>
 
+    <div id="paso1">
     {grupos.map((g, i) => (
       <div class="cards" id={`panel-${g.id}`} role="tabpanel" aria-labelledby={`tab-${g.id}`} hidden={i !== 0}>
         {g.items.map((s, n) => (
@@ -38,13 +57,20 @@ const grupos = [
                 <span><svg class="ico" aria-hidden="true"><use href="#i-clock" /></svg>{duracionTexto(s.data.duracion)}</span>
                 {s.data.ahorro && <span class="save">Ahorras {s.data.ahorro}</span>}
               </div>
-              <a class="btn btn-red" href="#reservar" data-pick={s.id} aria-label={`Reservar ${s.data.nombre}`}>Reservar</a>
+              <a class="btn btn-red" href={sinJs(s.id, s.data.nombre, s.data.precio, s.data.calEvento)}
+                data-pick={s.id} data-nombre={s.data.nombre} data-precio={s.data.precio}
+                data-duracion={duracionTexto(s.data.duracion)} data-evento={evento(s.id, s.data.calEvento)}
+                aria-label={`Reservar ${s.data.nombre}`}>Reservar</a>
             </div>
           </article>
         ))}
       </div>
     ))}
     <p class="note">Precios en pesos mexicanos (MXN). Permacología requiere un largo mínimo de 4 dedos.</p>
+    </div>
+
+    <Reservar />
+
   </div>
 </section>
 
@@ -92,12 +118,16 @@ const grupos = [
   document.fonts?.ready.then(moveInd);
   moveInd();
 
-  // "Reservar" en una tarjeta: lleva a la sección de reservas con ese servicio elegido (RF-04).
-  document.querySelectorAll<HTMLAnchorElement>('#servicios [data-pick]').forEach((a) =>
-    a.addEventListener('click', () => {
-      window.dispatchEvent(new CustomEvent('mamba:servicio', { detail: a.dataset.pick }));
-    }),
-  );
+  // Al volver del calendario ("Cambiar servicio"): se abre la pestaña de ese servicio y se enfoca su botón.
+  window.addEventListener('mamba:cambiar', (e) => {
+    const id = (e as CustomEvent<string>).detail;
+    const boton = document.querySelector<HTMLElement>(`#servicios [data-pick="${id}"]`);
+    const panel = boton?.closest<HTMLElement>('[role="tabpanel"]');
+    const tab = panel && tabs.find((t) => t.getAttribute('aria-controls') === panel.id);
+    if (tab && tab.getAttribute('aria-selected') !== 'true') select(tab);
+    document.getElementById('servicios')!.scrollIntoView({ block: 'start' });
+    boton?.focus({ preventScroll: true });
+  });
 
   // Entrada escalonada de las tarjetas la primera vez que se ven.
   const first = document.getElementById('panel-servicios')!;
@@ -110,6 +140,11 @@ const grupos = [
 </script>
 
 <style>
+  .ancla { position: absolute; top: 0; scroll-margin-top: calc(-1 * var(--sec-pad)); }
+  .intro { margin: 16px 0 0; max-width: 30em; color: var(--color-body); }
+  /* En el paso 2 las pestañas se ocultan, pero conservan su lugar para que el título no salte. */
+  .sec-head:has(~ #paso1[hidden]) .tabs { visibility: hidden; }
+
   .tabs { position: relative; display: flex; gap: 6px; padding: 6px; background: var(--color-bg); border: 1px solid var(--color-line); border-radius: 6px; }
   .tabs button {
     position: relative; z-index: 1; min-height: 48px; padding: 0 26px; border: 0; border-radius: 4px;
@@ -144,8 +179,8 @@ const grupos = [
   }
   .card:hover::before { transform: scaleY(1); }
   .card-top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
-  h3 { font-family: var(--font-display); font-weight: 400; font-size: 34px; letter-spacing: .03em; line-height: 1; margin: 0; }
-  .price { font-family: var(--font-display); font-size: 38px; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  h3 { font-family: var(--font-display); font-weight: 400; font-size: 29px; letter-spacing: .02em; text-transform: uppercase; line-height: 1; margin: 0; }
+  .price { font-family: var(--font-display); font-size: 34px; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .card p { margin: 0; color: var(--color-body); font-size: 16px; line-height: 1.55; flex: 1; }
   .card-foot {
     display: flex; justify-content: space-between; align-items: center; gap: 12px;
@@ -172,8 +207,8 @@ const grupos = [
     .tabs { width: 100%; }
     .tabs button { flex: 1; padding: 0; }
     .card { padding: 20px; }
-    h3 { font-size: 28px; }
-    .price { font-size: 30px; }
+    h3 { font-size: 24px; }
+    .price { font-size: 27px; }
   }
   @media (prefers-reduced-motion: reduce) {
     :global(html.anim) #panel-servicios:not(.play) .card { opacity: 1; }

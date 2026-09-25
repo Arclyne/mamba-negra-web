@@ -1,5 +1,6 @@
 ---
 import BgTool from './BgTool.astro';
+import Reconocimientos from './Reconocimientos.astro';
 import SectionTitle from './SectionTitle.astro';
 
 const datos = [
@@ -23,6 +24,7 @@ const datos = [
     <div class="stats">
       {datos.map((d) => <div><strong>{d.titulo}</strong><span>{d.texto}</span></div>)}
     </div>
+    <div class="reco"><Reconocimientos /></div>
     <blockquote>“El estilo no es lo que ves. <span>Es lo que sientes cuando te ves.”</span></blockquote>
   </div>
 </section>
@@ -35,11 +37,12 @@ const datos = [
   .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-block: 1px solid var(--color-line); margin-top: 64px; }
   .stats div { padding: 32px 28px; border-left: 1px solid var(--color-line); display: flex; flex-direction: column; gap: 6px; }
   .stats div:first-child { border-left: 0; padding-left: 0; }
-  .stats strong { font-family: var(--font-display); font-weight: 400; font-size: 44px; line-height: 1; color: var(--color-fg); }
+  .stats strong { font-family: var(--font-display); font-weight: 400; font-size: 38px; text-transform: uppercase; line-height: 1; color: var(--color-fg); }
   .stats span { font-size: 15px; color: var(--color-body); }
+  .reco { margin-top: clamp(48px, 7vw, 80px); }
   blockquote {
-    margin: 64px auto 0; max-width: 22ch; text-align: center; font-family: var(--font-display);
-    font-size: clamp(32px, 4vw, 52px); line-height: 1.08; text-wrap: balance;
+    margin: 64px auto 0; max-width: 24ch; text-align: center; font-family: var(--font-display);
+    font-size: clamp(30px, 3.6vw, 46px); line-height: 1.12; text-transform: uppercase; text-wrap: balance;
   }
   blockquote span { color: var(--color-red-text); }
   section :global(.bt-nos) { width: clamp(200px, 17vw, 260px); right: -1%; top: 3%; transform: rotate(28deg); }

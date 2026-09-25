@@ -1,9 +1,9 @@
 ---
 import { getServicios } from '../lib/servicios';
-import '@fontsource/bebas-neue/latin.css';
+import '@fontsource/anton/latin.css';
 import '@fontsource-variable/dm-sans/wght.css';
 import '../styles/global.css';
-import bebasWoff2 from '@fontsource/bebas-neue/files/bebas-neue-latin-400-normal.woff2?url';
+import antonWoff2 from '@fontsource/anton/files/anton-latin-400-normal.woff2?url';
 import { getImage } from 'astro:assets';
 import Icons from '../components/Icons.astro';
 import logo from '../assets/logo.webp';
@@ -86,7 +86,7 @@ if (schema) {
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="sitemap" href="/sitemap-index.xml" />
-    <link rel="preload" href={bebasWoff2} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={antonWoff2} as="font" type="font/woff2" crossorigin />
 
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="es_MX" />

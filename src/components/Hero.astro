@@ -2,19 +2,22 @@
 import { Image } from 'astro:assets';
 import BgTool from './BgTool.astro';
 import logo from '../assets/logo.webp';
-import { negocio } from '../config/negocio';
+import { negocio, waLink } from '../config/negocio';
 ---
 
 <div class="hero" id="inicio">
   <BgTool tool="razor" class="bt-hero" />
   <div class="wrap">
-    <div>
+    <div class="hero-txt">
       <p class="eyebrow">Barbería premium · Centro de {negocio.direccion.ciudad}</p>
-      <h1 class="display"><span class="ln">La Mamba</span><br /><span class="ln red">Negra</span></h1>
+      <h1 class="display"><span class="ln">La</span><br /><span class="ln">Mamba</span><br /><span class="ln red">Negra</span></h1>
       <p class="lead">Donde el estilo clásico se fusiona con la cultura contemporánea. Cada corte, una obra maestra.</p>
       <div class="cta">
         <a class="btn btn-red" href="#reservar">Reservar cita</a>
-        <a class="btn btn-ghost" href="#servicios">Ver precios</a>
+        <!-- Acción distinta a reservar: para quien prefiere preguntar antes de apartar su cita. -->
+        <a class="btn btn-ghost" href={waLink()} target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+          <svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg><span><span class="largo">Escríbenos por </span>WhatsApp</span>
+        </a>
       </div>
       <div class="facts">
         <span><svg class="ico" aria-hidden="true"><use href="#i-clock" /></svg>{negocio.horario.resumen}</span>
@@ -81,7 +84,14 @@ import { negocio } from '../config/negocio';
     display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 32px; align-items: center;
     padding-block: clamp(40px, 7vw, 96px);
   }
-  h1 { font-size: clamp(96px, 12vw, 176px); line-height: .84; margin: 26px 0 28px; }
+  /* Título en tres líneas, como el prototipo. Mide en proporción al ancho de su columna (cqw):
+     "MAMBA" ocupa 2.94 veces el tamaño de letra, así que 32cqw siempre cabe, con tope de 152 px. */
+  .hero-txt { container-type: inline-size; }
+  h1 {
+    font-family: var(--font-display); font-size: min(152px, 32cqw); line-height: .9; letter-spacing: .005em;
+    text-transform: uppercase; margin: 26px 0 28px;
+  }
+  h1 .ln { white-space: nowrap; }
   h1 .ln.red { color: var(--color-red-hot); }
   .lead { font-size: clamp(18px, 1.6vw, 21px); color: var(--color-body); max-width: 30em; margin: 0 0 32px; }
   .cta { display: flex; flex-wrap: wrap; gap: 12px; }
@@ -95,7 +105,8 @@ import { negocio } from '../config/negocio';
   .eyebrow::before { transform-origin: left; animation: lineIn .6s var(--ease) .35s both; }
   h1 .ln { display: inline-block; }
   h1 .ln:nth-of-type(1) { animation-delay: .15s; }
-  h1 .ln:nth-of-type(2) { animation-delay: .28s; }
+  h1 .ln:nth-of-type(2) { animation-delay: .24s; }
+  h1 .ln:nth-of-type(3) { animation-delay: .33s; }
   .lead { animation-delay: .42s; }
   .cta { animation-delay: .54s; }
   .facts { animation-delay: .66s; }
@@ -175,7 +186,8 @@ import { negocio } from '../config/negocio';
     .hero :global(.bt-hero) { width: 88vw; left: -20%; bottom: auto; top: 30%; }
   }
   @media (max-width: 640px) {
-    h1 { font-size: clamp(84px, 26vw, 112px); }
+    h1 { font-size: min(96px, 32cqw); }
+    .largo { display: none; }
     .cta .btn { flex: 1; padding: 0 12px; }
   }
   @media (prefers-reduced-motion: reduce) {

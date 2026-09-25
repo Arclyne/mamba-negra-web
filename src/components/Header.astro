@@ -13,9 +13,9 @@ const hayResenas = resenas.length > 0;
 
 const links = [
   { href: '#nosotros', corto: 'Nosotros', largo: 'Nosotros' },
-  { href: '#servicios', corto: 'Servicios', largo: 'Servicios y precios' },
   { href: '#trabajo', corto: 'Trabajo', largo: 'Nuestro trabajo' },
   ...(hayResenas ? [{ href: '#resenas', corto: 'Reseñas', largo: 'Reseñas' }] : []),
+  { href: '#servicios', corto: 'Servicios', largo: 'Servicios y precios' },
   { href: '#ubicacion', corto: 'Ubicación', largo: 'Ubicación' },
 ];
 ---
@@ -23,7 +23,7 @@ const links = [
 <header class="hdr" id="hdr">
   <div class="wrap">
     <a class="brand" href={`${inicio || '/'}#inicio`} aria-label={`${negocio.nombre}, inicio`}>
-      <Image src={logo} alt="" width={44} height={44} densities={[1, 2]} loading="eager" />
+      <Image src={logo} alt="" width={44} height={44} densities={[1, 2]} />
       <span>{negocio.nombre}</span>
     </a>
     <nav class="nav" aria-label="Principal">
@@ -91,7 +91,7 @@ const links = [
     width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--color-line-2); object-fit: cover;
     transition: width .25s var(--ease), height .25s var(--ease);
   }
-  .brand span { font-family: var(--font-display); font-size: 26px; letter-spacing: .08em; }
+  .brand span { font-family: var(--font-display); font-size: 23px; letter-spacing: .06em; text-transform: uppercase; }
 
   .nav { display: flex; align-items: center; gap: 36px; font-size: 16px; font-weight: 500; }
   .nav a:not(.btn) { color: #dadadf; }
@@ -110,7 +110,7 @@ const links = [
     padding: 24px var(--gutter); display: flex; flex-direction: column; overflow-y: auto;
   }
   .mnav a:not(.btn) {
-    font-family: var(--font-display); font-size: 44px; color: var(--color-fg);
+    font-family: var(--font-display); font-size: 38px; text-transform: uppercase; color: var(--color-fg);
     padding: 10px 0; border-bottom: 1px solid var(--color-line);
   }
   .mnav .btn { margin-top: 28px; }

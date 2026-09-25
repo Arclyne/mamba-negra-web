@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Identidad visual: negro, rojo y cromo. Bebas Neue para títulos, DM Sans para texto.
+/* Identidad visual: negro, rojo y cromo. Anton (en mayúsculas) para títulos, DM Sans para texto.
    Estos tokens generan utilidades de Tailwind (bg-surface, text-red-text, font-display…)
    y variables CSS (--color-red…) que usan los estilos de cada componente. */
 @theme static {
@@ -19,7 +19,7 @@
   --color-red-dim: #2a0d0f;
   --color-wa: #25d366;
 
-  --font-display: "Bebas Neue", Impact, "Arial Narrow", sans-serif;
+  --font-display: "Anton", Impact, "Arial Narrow", sans-serif;
   --font-sans: "DM Sans Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --ease-out-soft: cubic-bezier(0.2, 0.75, 0.2, 1);
@@ -29,18 +29,20 @@
 :root {
   color-scheme: dark;
   --gutter: clamp(16px, 5vw, 96px);
+  --sec-pad: clamp(64px, 10vw, 128px);
   --maxw: 1280px;
   --ease: var(--ease-out-soft);
 }
 
 @layer base {
   [hidden]:not([hidden="until-found" i]) { display: none !important; }
-  html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+  html { scroll-behavior: smooth; scroll-padding-top: 96px; }
   body {
     background: var(--color-bg);
     color: var(--color-fg);
     font-family: var(--font-sans);
     font-size: 17px;
+    font-weight: 500;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
   }
@@ -60,8 +62,8 @@
   .wrap { max-width: var(--maxw); margin: 0 auto; padding-inline: var(--gutter); }
 
   .display {
-    font-family: var(--font-display); font-weight: 400; letter-spacing: .01em; line-height: .9;
-    margin: 0; text-wrap: balance;
+    font-family: var(--font-display); font-weight: 400; letter-spacing: .005em; line-height: .95;
+    text-transform: uppercase; margin: 0; text-wrap: balance;
   }
   .eyebrow {
     display: flex; align-items: center; gap: 12px; margin: 0;
@@ -73,7 +75,7 @@
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 10px;
     min-height: 52px; padding: 0 28px; border-radius: 4px; border: 1px solid transparent;
-    font-weight: 700; font-size: 15px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;
+    font-weight: 800; font-size: 15px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;
     transition: background .15s, border-color .15s, color .15s, transform .2s var(--ease), box-shadow .2s;
   }
   .btn:active { transform: scale(.97); }
@@ -85,14 +87,25 @@
   .ico { width: 18px; height: 18px; flex-shrink: 0; stroke: currentColor; }
 
   /* Secciones */
-  .section { position: relative; overflow: hidden; padding-block: clamp(64px, 10vw, 128px); }
+  .section { position: relative; overflow: hidden; padding-block: var(--sec-pad); }
+  /* Los enlaces del menú llevan al contenido (título de la sección) y no al borde superior,
+     que tiene un margen interno grande: así el título queda justo debajo del encabezado. */
+  .section[id] { scroll-margin-top: calc(-1 * var(--sec-pad)); }
   .section > .wrap { position: relative; z-index: 1; }
   .section.alt { background: var(--color-bg-2); border-block: 1px solid var(--color-line); }
   .sec-head {
     display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
     gap: 24px 48px; margin-bottom: clamp(28px, 4vw, 48px);
   }
-  .sec-title { font-size: clamp(56px, 7vw, 96px); margin-top: 18px; }
+  .sec-title { font-size: clamp(48px, 6.2vw, 84px); margin-top: 18px; }
+  /* Subtítulo dentro de una sección, con línea a la derecha. */
+  .sub {
+    display: flex; align-items: center; gap: 14px; margin: 0 0 18px;
+    font-family: var(--font-display); font-weight: 400; font-size: 28px; letter-spacing: .03em;
+    text-transform: uppercase; color: var(--color-fg);
+  }
+  .sub::after { content: ""; flex: 1; height: 1px; background: var(--color-line); }
+  @media (max-width: 640px) { .sub { font-size: 24px; } }
 
   /* Ilustraciones de herramientas al fondo */
   .bg-tool {

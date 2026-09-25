@@ -61,7 +61,8 @@ export function montarCalendario(el: HTMLElement, opts: { origin: string; calLin
   Cal.ns[ns]('ui', {
     theme: 'dark',
     layout: 'month_view',
-    hideEventTypeDetails: false,
+    // El servicio, duración y precio ya se muestran en el sitio; así el calendario y las horas caben lado a lado.
+    hideEventTypeDetails: true,
     cssVarsPerTheme: { dark: { 'cal-brand': '#D7262E' } },
   });
 }
