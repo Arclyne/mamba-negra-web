@@ -31,7 +31,7 @@ const mensajeWa = (nombre: string, precio: number) => `Hola, quiero agendar una 
       </p>
     </div>
 
-    <div class="book" id="booking" data-cal={conCal ? '' : undefined} data-cal-origin={origen} data-wa={waLink()}>
+    <div class="book" id="booking" data-reservas-cal={conCal ? '' : undefined} data-origen={origen} data-wa={waLink()}>
       <div class="b-svc">
         <span class="step" id="lbl-svc">1 · Servicio</span>
         <div class="svc-list" role="group" aria-labelledby="lbl-svc">
@@ -40,7 +40,7 @@ const mensajeWa = (nombre: string, precio: number) => `Hola, quiero agendar una 
               <span class="grp">{g.etiqueta}</span>
               {g.items.map((s) => (
                 <button type="button" data-svc={s.id} data-nombre={s.data.nombre} data-precio={s.data.precio}
-                  data-duracion={duracionTexto(s.data.duracion)} data-cal-link={calLink(s.id, s.data.calEvento)}
+                  data-duracion={duracionTexto(s.data.duracion)} data-evento={calLink(s.id, s.data.calEvento)}
                   aria-pressed={s.id === inicial.id ? 'true' : 'false'}>
                   <span>{s.data.nombre}</span><em>${s.data.precio}</em>
                 </button>
@@ -105,8 +105,9 @@ const mensajeWa = (nombre: string, precio: number) => `Hola, quiero agendar una 
   import { montarCalendario } from '../scripts/calcom';
 
   const root = document.getElementById('booking')!;
-  const conCal = root.hasAttribute('data-cal');
-  const origin = root.dataset.calOrigin!;
+  // Ojo: no usar atributos data-cal-*, el script de Cal.com los convierte en botones de ventana emergente.
+  const conCal = root.hasAttribute('data-reservas-cal');
+  const origin = root.dataset.origen!;
   const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-svc]'));
   const select = document.getElementById('svcSelect') as HTMLSelectElement;
   const embed = document.getElementById('calEmbed');
@@ -126,7 +127,7 @@ const mensajeWa = (nombre: string, precio: number) => `Hola, quiero agendar una 
     el.className = 'cal-frame';
     embed.appendChild(el);
     montados.set(actual, el);
-    montarCalendario(el, { origin, calLink: d.calLink!, namespace: `svc_${actual.replace(/-/g, '_')}` });
+    montarCalendario(el, { origin, calLink: d.evento!, namespace: `svc_${actual.replace(/-/g, '_')}` });
     // Cal.com inserta su iframe; entonces se quita el aviso de carga.
     new MutationObserver((_, obs) => {
       if (el.querySelector('iframe')) { $('calLoading')?.remove(); obs.disconnect(); }
