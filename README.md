@@ -92,7 +92,7 @@ Si el dominio final no es `lamambanegra.com.mx`, cámbialo en `astro.config.mjs`
 
 - [ ] Registrar el dominio y confirmar `site` en `astro.config.mjs`
 - [ ] Crear la cuenta de Cal.com del negocio y sus tipos de evento; llenar `calcom.usuario`
-- [ ] Completar los datos del responsable en `negocio.ts` → `privacidad` y revisar el aviso con un asesor
+- [ ] Revisar el aviso de privacidad con un asesor
 - [ ] Confirmar el permiso de los clientes que aparecen en las fotos de cortes
 - [ ] Agregar reseñas reales (opcional)
 # mamba-negra-web

@@ -57,11 +57,11 @@ export const negocio = {
     totalResenas: null as number | null,
   },
 
-  // Aviso de privacidad (LFPDPPP). Completar antes de publicar.
+  // Aviso de privacidad (LFPDPPP). Actualiza la fecha cada vez que cambie el aviso.
   privacidad: {
-    responsable: '[NOMBRE COMPLETO DEL TITULAR O RAZÓN SOCIAL]',
-    correo: '[correo@lamambanegra.com.mx]',
-    actualizado: '[FECHA DE ÚLTIMA ACTUALIZACIÓN]',
+    responsable: 'Jesús Alarcón Mendoza',
+    correo: 'lamambanegra488@gmail.com',
+    actualizado: '24 de septiembre de 2026',
   },
 } as const;
 
