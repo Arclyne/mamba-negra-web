@@ -69,7 +69,10 @@ Para activar el calendario:
    en `servicios.json` (`corte-de-cabello`, `corte-y-barba`, …) y la duración real. Si un slug debe ser distinto, agrega `"calEvento": "otro-slug"` a ese servicio.
 2. Pon el nombre de usuario público de Cal.com en `negocio.ts` → `calcom.usuario`. No es un secreto: forma parte de la URL pública de reservas.
 3. Configura en Cal.com: aviso mínimo de 30 min, recordatorio 24 h antes, verificación de correo y límite de reservas por persona (RF-10 a RF-12).
-   Los textos «Reserva hasta 30 min antes» y «Cancela o cambia hasta 1 h antes» del sitio deben coincidir con esa configuración.
+   «Reserva hasta 30 min antes» sí lo aplica Cal.com (Limits & buffers → Minimum notice).
+   Cancelar o reagendar con 1 h de anticipación es una **política**, no un bloqueo: Cal.com solo permite
+   desactivar por completo la cancelación o el reagendado, no limitarlos por tiempo. Por eso el sitio lo pide
+   («avísanos con 1 h de anticipación») en lugar de prometer que se bloquea.
 
 El calendario (un iframe de Cal.com) solo se descarga cuando alguien llega a la sección de reservas o elige un servicio.
 Los botones «Reservar» de cada tarjeta y los enlaces `/?servicio=<id>#reservar` abren la reserva con ese servicio ya elegido.
